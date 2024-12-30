@@ -1178,6 +1178,7 @@ const updateAnnotationCategory = (annotation, oldCategory, newCategoryName) => {
   
   if (!newCategory || !annotation) return;
 
+  currentAnnotationFromList.value.deleteAnnot(annotation.id);
   Annotations.update(annotation.id, { category_id: newCategory.id }).then(
     (response) => {
       let newAnnotation = {
