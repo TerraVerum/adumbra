@@ -3,7 +3,7 @@
     <ol class="breadcrumb">
       <li class="breadcrumb-item" />
       <li class="breadcrumb-item active">
-        <button class="btn btn-sm btn-link" @click="folders = []">
+        <button class="btn btn-sm btn-link" @click="clearFolders">
           {{ dataset.name }}
         </button>
       </li>
@@ -26,7 +26,7 @@
       No images found in directory.
     </p>
     <div v-else>
-      <Pagination :pages="pages" @pagechange="updatePage" />
+      <Pagination v-model:page="page" :pages="pages" @pagechange="updatePage" />
       <div class="row">
         <ImageCard
           v-for="image in images"
@@ -35,7 +35,7 @@
           @updatePage="updatePage"
         />
       </div>
-      <Pagination :pages="pages" @pagechange="updatePage" />
+      <Pagination :pages="pages" v-model:page="page" @pagechange="updatePage" />
     </div>
   </div>
 </template>
@@ -44,9 +44,9 @@
 import ImageCard from "@/components/cards/ImageCard.vue";
 import Pagination from "@/components/Pagination.vue";
 
-import { defineProps, ref, watch } from "vue";
+const page = defineModel<number>("page", { required: true });
 
-const props = defineProps<{
+defineProps<{
   dataset: {
     id: number;
     name: string;
@@ -55,5 +55,7 @@ const props = defineProps<{
   folders: string[];
   pages: number;
   updatePage: (page: number) => void;
+  removeFolder: (folder: string) => void;
+  clearFolders: () => void;
 }>();
 </script>

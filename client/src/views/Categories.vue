@@ -44,16 +44,14 @@
           </div>
         </div>
 
-        <hr>
+        <hr />
 
-        <p
-          v-if="categories.length < 1"
-          class="text-center"
-        >
+        <p v-if="categories.length < 1" class="text-center">
           You need to create a category!
         </p>
         <div v-else>
           <Pagination
+            v-model:page="page"
             :pages="pages"
             @pagechange="updatePage"
           />
@@ -70,28 +68,17 @@
       </div>
     </div>
 
-    <div
-      id="createCategories"
-      class="modal fade"
-      tabindex="-1"
-      role="dialog"
-    >
-      <div
-        class="modal-dialog"
-        role="document"
-      >
+    <div id="createCategories" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header justify-content-between">
-            <h5 class="modal-title">
-              Creating a Category
-            </h5>
+            <h5 class="modal-title">Creating a Category</h5>
             <button
               type="button"
               class="btn-close"
               data-bs-dismiss="modal"
               aria-label="Close"
-            >
-            </button>
+            ></button>
           </div>
           <div class="modal-body">
             <form>
@@ -103,7 +90,7 @@
                   :class="{ 'is-invalid': newCategoryName.trim().length === 0 }"
                   required="true"
                   placeholder="Name"
-                >
+                />
               </div>
 
               <div class="form-group">
@@ -112,7 +99,7 @@
                   v-model="newCategorySupercategory"
                   class="form-control"
                   placeholder="Supercategory"
-                >
+                />
               </div>
 
               <div class="form-group row">
@@ -122,7 +109,7 @@
                     v-model="newCategoryColor"
                     type="color"
                     class="form-control"
-                  >
+                  />
                 </div>
               </div>
 
@@ -158,39 +145,29 @@
       </div>
     </div>
 
-    <div
-      id="helpCategories"
-      class="modal fade"
-      tabindex="-1"
-      role="dialog"
-    >
-      <div
-        class="modal-dialog"
-        role="document"
-      >
+    <div id="helpCategories" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header justify-content-between">
-            <h5 class="modal-title">
-              Categories
-            </h5>
+            <h5 class="modal-title">Categories</h5>
             <button
               type="button"
               class="btn-close"
               data-bs-dismiss="modal"
               aria-label="Close"
-            >
-            </button>
+            ></button>
           </div>
           <div class="modal-body">
             More information can be found in the
             <a
               href="https://github.com/jsbroks/coco-annotator/wiki/Usage#creating-categories"
             >
-              getting started section </a>.
-            <hr>
+              getting started section </a
+            >.
+            <hr />
             <h6>What is a category?</h6>
 
-            <hr>
+            <hr />
             <h6>How do I create one?</h6>
             Click on the "Create" button found on this webpage. You must
             provided a name for the category.
@@ -216,12 +193,12 @@ import CategoryCard from "@/components/cards/CategoryCard.vue";
 import Pagination from "@/components/Pagination.vue";
 import KeypointsDefinition from "@/components/KeypointsDefinition.vue";
 
-import { ref, computed, watch, inject, onMounted, provide } from 'vue';
+import { ref, computed, watch, inject, onMounted, provide } from "vue";
 
 import useAxiosRequest from "@/composables/axiosRequest";
-const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
+const { axiosReqestError, axiosReqestSuccess } = useAxiosRequest();
 
-import { useProcStore } from "@/store/index";
+import { useProcStore } from "@/store/index";
 const procStore = useProcStore();
 
 const categoryCount = ref(0);
@@ -235,11 +212,11 @@ const newCategoryColor = ref(null);
 const newCategoryKeypoint = ref({
   labels: [],
   edges: [],
-  colors: []
+  colors: [],
 });
 const categories = ref([]);
 const status = ref({
-  data: { state: true, message: "Loading categories" }
+  data: { state: true, message: "Loading categories" },
 });
 const keypoints = ref(null);
 
@@ -259,16 +236,16 @@ const updatePage = (p) => {
   page.value = p;
   Category.allData({
     page: p,
-    limit: limit.value
+    limit: limit.value,
   })
     .then((response) => {
       categories.value = response.data.categories;
       page.value = response.data.pagination.page;
-      pages .value= response.data.pagination.pages;
+      pages.value = response.data.pagination.pages;
       categoryCount.value = response.data.pagination.total;
     })
     .finally(() => {
-               procStore.removeProcess(process);
+      procStore.removeProcess(process);
     });
 };
 
@@ -312,9 +289,8 @@ const nextPage = () => {
 };
 
 onMounted(() => {
-      updatePage();
+  updatePage();
 });
-
 </script>
 
 <style scoped>
