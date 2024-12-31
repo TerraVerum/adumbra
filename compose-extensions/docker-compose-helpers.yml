@@ -1,0 +1,15 @@
+networks:
+  cocoannotator:
+    external: false
+
+services:
+  service-common:
+    networks:
+      - cocoannotator
+    volumes:
+      - "../backend/adumbra/config:/workspace/config"
+      - "../backend/adumbra/ia:/workspace/ia"
+      - "../backend/adumbra/workers:/workspace/workers"
+      - "../backend/adumbra/database:/workspace/database"
+      - "../datasets:/datasets"
+      - "../models:/models"

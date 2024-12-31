@@ -1,0 +1,26 @@
+networks:
+  cocoannotator:
+    external: false
+
+services:
+  ia:
+    extends:
+      file: compose-extensions/docker-compose-helpers.yml
+      service: service-common
+    image: ia_cpu
+    build:
+      dockerfile: ./Dockerfile.backend
+      target: coco-ng-ia
+    ports:
+      - 6000:6000
+    environment:
+      - FILE_WATCHER=true
+      - FLASK_APP=ia
+      - DEVICE=cpu
+      # Install IA aplications or not
+      - SAM2="1"
+      - ZIM="1"
+      - SAM2_MODEL_FILE=/models/sam2.1_hiera_base_plus.pt
+      - SAM2_MODEL_CONFIG=configs/sam2.1/sam2.1_hiera_b+.yaml
+      - ZIM_MODEL_FILE=/models/zim/
+      - ZIM_MODEL_TYPE=vit_b

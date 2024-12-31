@@ -1,0 +1,84 @@
+FROM continuumio/miniconda3:latest AS build_base
+# Allow commercial use of the container
+ENV CONDA_CHANNELS="conda-forge"
+
+# ----------------
+# System dependencies
+# ----------------
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    # TODO: While some dependencies are specified as `git+https://...`, we need
+    # git to be installed in the container to fetch the dependencies. After pinning
+    # properly, this can be removed.
+    git \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# ----------------
+# Python dependencies
+# ----------------
+COPY ./backend/requirements-pinned.txt /tmp/requirements-pinned.txt
+RUN pip install --no-cache-dir --no-deps -r /tmp/requirements-pinned.txt
+
+WORKDIR /workspace/
+# Provides `adumbra` as a package. We can also `pip install .` it if desired.
+COPY ./backend/ /workspace/
+
+# ----------------
+# Populate git cache
+# ----------------
+FROM build_base AS build_git_cache
+COPY ./.git/ /workspace/.git/
+RUN python adumbra/config/version_util.py
+# Artifact: ./adumbra/git_cache.json
+
+# ----------------
+# Image for other stages to use
+# ----------------
+FROM build_base AS coco-ng-python
+COPY --from=build_git_cache /workspace/adumbra/git_cache.json /workspace/adumbra/git_cache.json
+# Confirm git cache worked and python package is accessible
+RUN python -c 'from adumbra.config import Config; print(f"adumbra version: {Config.VERSION}")'
+
+# ----------------
+# Celery worker container
+# ----------------
+FROM coco-ng-python AS workers
+EXPOSE 5555
+CMD ["celery", "-A", "adumbra.workers", "worker", "-l", "info"]
+
+# ----------------
+# Webserver container
+# ----------------
+FROM coco-ng-python AS webserver
+CMD ["gunicorn", "-c", "adumbra/gunicorn_config.py", "adumbra.webserver:app", "--no-sendfile", "--timeout", "180"]
+
+# ----------------
+# IA container
+# ----------------
+FROM coco-ng-python AS coco-ng-ia
+# Conditionally install pytorch-cuda if device warrants
+RUN packages="pytorch torchvision"; \
+    if [ "$DEVICE" = "cuda" ]; then \
+    packages="$packages pytorch-cuda=12.4"; \
+    fi; \
+    conda install -c nvidia -c pytorch -y $packages \
+    && conda clean --all --yes
+
+# ------
+# https://github.com/facebookresearch/sam2/blob/main/INSTALL.md
+# indicates we need to explicitly request they don't build a cuda extension.
+# Zim depends on SAM1, which has a similar env-configured cuda builder listening for
+# FORCE_CUDA
+RUN CUDA_AVAILABLE=$([ "$DEVICE" = "cuda" ] && echo 1 || echo 0) && \
+    echo "SAM2_BUILD_CUDA=$CUDA_AVAILABLE" >> /etc/environment \
+    && echo "FORCE_CUDA=$CUDA_AVAILABLE" >> /etc/environment
+
+ENV SAM2="1"
+ENV ZIM="1"
+# Reads environment variables and installs sam/zim/etc as needed with minimal
+# dependencies
+COPY ./backend/requirements-ia/ /tmp/requirements-ia/
+RUN /tmp/requirements-ia/install_requirements.py
+
+EXPOSE 6000
+CMD ["gunicorn", "-c", "adumbra/gunicorn_config.py", "adumbra.ia:app", "--bind", "0.0.0.0:6000", "--no-sendfile"]

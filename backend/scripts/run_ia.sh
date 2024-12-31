@@ -1,0 +1,1 @@
+gunicorn -c adumbra/gunicorn_config.py adumbra.ia:app --no-sendfile

@@ -1,0 +1,35 @@
+FROM node:23-slim AS node_vite
+WORKDIR /workspace/
+
+RUN npm install --quiet \   
+    vite@latest \
+    @vitejs/plugin-vue@latest
+
+EXPOSE 8080
+
+FROM node_vite AS develop
+COPY ./client/ /workspace/client/
+RUN npm install --legacy-peer-deps ./client/
+
+COPY ./client/patch_strict/paper-full.min.js /workspace/node_modules/paper/dist/paper-full.min.js
+COPY ./client/patch_strict/paper-full.js /workspace/node_modules/paper/dist/paper-full.js
+
+# If the user specifies this stage, use a "dev" default command
+CMD npm run --prefix ./client dev -- --host --mode dev
+
+# -----------
+# Build
+# -----------
+FROM develop AS build
+COPY ./client/ /workspace/client/
+WORKDIR /workspace/client/
+RUN npm run build
+
+# ----------
+# Production -- just keep the dist folder
+# ----------
+# TODO: figure out how to run without vite using a proxy layer + nginx/equivalent
+FROM node_vite AS production
+COPY --from=build /workspace/client/dist/ /workspace/dist/
+COPY ./client/package.json ./client/vite.config.js /workspace/
+CMD npm run serve -- --host

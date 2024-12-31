@@ -1,0 +1,17 @@
+# To be used with docker-compose -f docker-compose.yml -f docker-compose.dev.yml [build|up|down|etc]
+
+services:
+  ia:
+    environment:
+      - FLASK_ENV=development
+      - DEBUG=true
+  webserver:
+    environment:
+      - FLASK_APP=webserver
+      - FLASK_ENV=development
+      - DEBUG=true
+  frontend:
+    build:
+      target: develop
+    volumes:
+      - "./client:/workspace/client"

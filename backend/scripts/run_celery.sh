@@ -1,0 +1,1 @@
+celery -A adumbra.workers worker -l info

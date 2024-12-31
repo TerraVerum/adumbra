@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "adumbra"
+version = "1.0.0"
+authors = [{ name = "@ntjess" }, { name = "@jdrakes" }, { name = "@sixks" }, { name = "@jsbroks" }]
+
+dependencies = [
+    "celery",
+    "eventlet",
+    "flask",
+    "flask-cors",
+    "flask-login",
+    "flask-restx",
+    "flask-socketio",
+    "google-images-download",
+    "gunicorn[eventlet]",
+    "imantics@git+https://github.com/SixK/imantics.git",
+    "mongoengine",
+    "numpy",
+    "opencv-python-headless",
+    "pillow",
+    "pycocotools",
+    "pydantic",
+    "pytest",
+    "requests",
+    "restx-monkey",
+    "shapely",
+    "watchdog",
+    "werkzeug",
+]
+
+[project.optional-dependencies]
+dev = ["black", "isort", "pylint", "unimport", "pre-commit"]
+full = ["adumbra[dev]"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.black]
+preview = true
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+
+[tool.unimport]
+ignore_init = true
+
+[tool.pylint]
+disable = [
+    "abstract-method",
+    "arguments-renamed",
+    "fixme",
+    "invalid-name",
+    "logging-fstring-interpolation",
+    "missing-function-docstring",
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "too-few-public-methods",
+    "use-implicit-booleaness-not-len",
+    "useless-import-alias",
+]
+max-args = 10
+max-attributes = 10
+max-locals = 20
+
+[tool.pyright]
+typeCheckingMode = "basic"
+reportPrivateImportUsage = false
+reportUninitializedInstanceVariable = true

@@ -1,0 +1,68 @@
+volumes:
+  mongodb_data:
+    external: false
+
+networks:
+  cocoannotator:
+    external: false
+
+x-extends: &service-extends
+  extends:
+    file: ./compose-extensions/docker-compose-helpers.yml
+    service: service-common
+
+services:
+  messageq:
+    <<: *service-extends
+    image: rabbitmq:3
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+  database:
+    <<: *service-extends
+    image: mongo:4.0
+    restart: always
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    volumes:
+      - "mongodb_data:/data/db"
+    command: "mongod --smallfiles --logpath=/dev/null"
+    ports:
+      - 27017:27017
+  frontend:
+    <<: *service-extends
+    image: annotator_frontend
+    build:
+      dockerfile: ./Dockerfile.frontend
+      target: production  # Default since production is the last stage
+    ports:
+      - "8080:8080"
+    depends_on:
+      - webserver
+  webserver:
+    <<: *service-extends
+    build:
+      dockerfile: ./Dockerfile.backend
+      target: webserver
+    image: webserver
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      - SECRET_KEY=RandomSecretKeyHere
+      - FILE_WATCHER=true
+      - NAME=Test Annotator
+    depends_on:
+      - database
+      - workers
+  workers:
+    <<: *service-extends
+    image: annotator_workers
+    build:
+      dockerfile: ./Dockerfile.backend
+      target: workers
+    depends_on:
+      - messageq
+      - database
+
