@@ -51,7 +51,7 @@ class DatasetModel(ShimmedDynamicDocument):
         from adumbra.workers.tasks import import_annotations
 
         task = TaskModel(
-            name="Import COCO format into {}".format(self.name),
+            name=f"Import COCO format into {self.name}",
             dataset_id=self.id,
             group="Annotation Import",
         )
