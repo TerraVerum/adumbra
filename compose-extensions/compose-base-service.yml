@@ -1,0 +1,10 @@
+include:
+  - ${PWD}/compose-extensions/networks-volumes.yml
+services:
+  service-common:
+    networks:
+      - adumbra_network
+    volumes:
+      # Use named volumes instead of bind mounts (binds can be set in dev override)
+      - "datasets:/datasets"
+      - "models:/models"

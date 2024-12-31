@@ -1,11 +1,10 @@
-networks:
-  adumbra_network:
-    external: false
+include:
+  - ${PWD}/compose-extensions/networks-volumes.yml
 
 services:
   ia:
     extends:
-      file: ./ia-cpu.yml
+      file: ${PWD}/compose-extensions/ia-cpu.yml
       service: ia
     image: ia_gpu
     deploy:

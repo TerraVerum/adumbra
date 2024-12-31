@@ -1,14 +1,13 @@
+include:
+  - ${PWD}/compose-extensions/networks-volumes.yml
+
 volumes:
   mongodb_data:
     external: false
 
-networks:
-  adumbra_network:
-    external: false
-
 x-extends: &service-extends
   extends:
-    file: ./compose-extensions/docker-compose-helpers.yml
+    file: ${PWD}/compose-extensions/compose-base-service.yml
     service: service-common
 
 services:
@@ -65,4 +64,23 @@ services:
     depends_on:
       - messageq
       - database
-
+  ia-gpu:
+    extends:
+      file: ${PWD}/compose-extensions/ia-gpu.yml
+      service: ia
+    profiles:
+      - ia-gpu
+    networks:
+      adumbra_network:
+        aliases:
+          - ia
+  ia-cpu:
+    extends:
+      file: ${PWD}/compose-extensions/ia-cpu.yml
+      service: ia
+    profiles:
+      - ia-cpu
+    networks:
+      adumbra_network:
+        aliases:
+          - ia
