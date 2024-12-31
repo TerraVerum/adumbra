@@ -14,4 +14,4 @@ services:
     build:
       target: develop
     volumes:
-      - "./client:/workspace/client"
+      - "${PWD}/client:/workspace/client"

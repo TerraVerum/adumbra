@@ -5,7 +5,7 @@ networks:
 services:
   ia:
     extends:
-      file: ./ia-cpu.yml
+      file: ${PWD}/compose-extensions/ia-cpu.yml
       service: ia
     image: ia_gpu
     deploy:

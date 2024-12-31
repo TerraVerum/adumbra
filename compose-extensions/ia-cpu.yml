@@ -5,11 +5,11 @@ networks:
 services:
   ia:
     extends:
-      file: compose-extensions/docker-compose-helpers.yml
+      file: ${PWD}/compose-extensions/docker-compose-helpers.yml
       service: service-common
     image: ia_cpu
     build:
-      dockerfile: ./Dockerfile.backend
+      dockerfile: ${PWD}/Dockerfile.backend
       target: adumbra-ia
     ports:
       - 6000:6000

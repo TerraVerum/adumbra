@@ -7,9 +7,9 @@ services:
     networks:
       - adumbra_network
     volumes:
-      - "../backend/adumbra/config:/workspace/config"
-      - "../backend/adumbra/ia:/workspace/ia"
-      - "../backend/adumbra/workers:/workspace/workers"
-      - "../backend/adumbra/database:/workspace/database"
-      - "../datasets:/datasets"
-      - "../models:/models"
+      - "${PWD}/backend/adumbra/config:/workspace/config"
+      - "${PWD}/backend/adumbra/ia:/workspace/ia"
+      - "${PWD}/backend/adumbra/workers:/workspace/workers"
+      - "${PWD}/backend/adumbra/database:/workspace/database"
+      - "${PWD}/datasets:/datasets"
+      - "${PWD}/models:/models"
