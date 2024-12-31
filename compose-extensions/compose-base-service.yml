@@ -1,7 +1,5 @@
-networks:
-  adumbra_network:
-    external: false
-
+include:
+  - ${PWD}/compose-extensions/networks-volumes.yml
 services:
   service-common:
     networks:

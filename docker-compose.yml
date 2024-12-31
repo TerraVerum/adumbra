@@ -1,14 +1,13 @@
+include:
+  - ${PWD}/compose-extensions/networks-volumes.yml
+
 volumes:
   mongodb_data:
     external: false
 
-networks:
-  adumbra_network:
-    external: false
-
 x-extends: &service-extends
   extends:
-    file: ./compose-extensions/docker-compose-helpers.yml
+    file: ./compose-extensions/compose-base-service.yml
     service: service-common
 
 services:

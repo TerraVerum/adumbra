@@ -1,0 +1,9 @@
+networks:
+  adumbra_network:
+    external: false
+
+volumes:
+  datasets:
+    external: false
+  models:
+    external: false
