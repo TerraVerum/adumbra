@@ -1,6 +1,6 @@
 include:
   - ${PWD}/compose-extensions/networks-volumes.yml
-  
+
 services:
   ia:
     extends:
