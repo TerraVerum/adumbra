@@ -14,8 +14,11 @@
           :dataset="dataset"
           :images="images"
           :folders="folders"
+          v-model:page="page"
           :pages="pages"
           :updatePage="updatePage"
+          :removeFolder="removeFolder"
+          :clearFolders="clearFolders"
         />
 
         <ExportsTab
@@ -476,6 +479,7 @@ let cocoExportModal = null;
 let imagesUploadModal = null;
 
 const identifier = ref(props.identifier);
+const page = ref(1);
 const pages = ref(1);
 const generateLimit = ref(100);
 const limit = ref(52);
@@ -684,6 +688,10 @@ const exportCOCO = () => {
 const removeFolder = (folder) => {
   let index = folders.value.indexOf(folder);
   folders.value.splice(index + 1, folders.value.length);
+};
+
+const clearFolders = () => {
+  folders.value = [];
 };
 
 const importModal = () => {

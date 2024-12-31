@@ -263,11 +263,10 @@
 
       <button
         type="button"
-        class="close"
+        class="btn-close"
         data-bs-dismiss="alert"
         aria-label="Close"
       >
-        <span aria-hidden="true">&times;</span>
       </button>
     </div>
   </div>
@@ -1074,22 +1073,22 @@ const stepOut = () => {
 };
 
 const createAnnotation = () => {
-        if (currentCategory.value) {
-          currentCategory.value.createAnnotation();
+        if (currentCategoryFromList.value) {
+          currentCategoryFromList.value.createAnnotation();
         }
 };
 
 const deleteAnnotation = () => {
-    if (currentAnnotation.value) {
-        let currentKeypoint = currentAnnotation.value.currentKeypoint;
+    if (currentAnnotationFromList.value) {
+        let currentKeypoint = currentAnnotationFromList.value.currentKeypoint;
         if (currentKeypoint) {
-            currentAnnotation.value.keypoints.deleteKeypoint(
+            currentAnnotationFromList.value.keypoints.deleteKeypoint(
                         currentKeypoint
             );
-            currentAnnotation.value.tagRecomputeCounter++;
-            currentAnnotation.value.currentKeypoint = null;
+            currentAnnotationFromList.value.tagRecomputeCounter++;
+            currentAnnotationFromList.value.currentKeypoint = null;
         } else {
-            currentAnnotation.value.deleteAnnotation();
+            currentAnnotationFromList.value.deleteAnnotation();
         }
     }
 };
@@ -1179,6 +1178,7 @@ const updateAnnotationCategory = (annotation, oldCategory, newCategoryName) => {
   
   if (!newCategory || !annotation) return;
 
+  currentAnnotationFromList.value.deleteAnnot(annotation.id);
   Annotations.update(annotation.id, { category_id: newCategory.id }).then(
     (response) => {
       let newAnnotation = {
