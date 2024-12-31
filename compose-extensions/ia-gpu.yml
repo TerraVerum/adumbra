@@ -1,5 +1,5 @@
 networks:
-  cocoannotator:
+  adumbra_network:
     external: false
 
 services:

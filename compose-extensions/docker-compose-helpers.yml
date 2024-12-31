@@ -1,11 +1,11 @@
 networks:
-  cocoannotator:
+  adumbra_network:
     external: false
 
 services:
   service-common:
     networks:
-      - cocoannotator
+      - adumbra_network
     volumes:
       - "../backend/adumbra/config:/workspace/config"
       - "../backend/adumbra/ia:/workspace/ia"

@@ -34,7 +34,7 @@ RUN python adumbra/config/version_util.py
 # ----------------
 # Image for other stages to use
 # ----------------
-FROM build_base AS coco-ng-python
+FROM build_base AS adumbra-python
 COPY --from=build_git_cache /workspace/adumbra/git_cache.json /workspace/adumbra/git_cache.json
 # Confirm git cache worked and python package is accessible
 RUN python -c 'from adumbra.config import Config; print(f"adumbra version: {Config.VERSION}")'
@@ -42,20 +42,20 @@ RUN python -c 'from adumbra.config import Config; print(f"adumbra version: {Conf
 # ----------------
 # Celery worker container
 # ----------------
-FROM coco-ng-python AS workers
+FROM adumbra-python AS workers
 EXPOSE 5555
 CMD ["celery", "-A", "adumbra.workers", "worker", "-l", "info"]
 
 # ----------------
 # Webserver container
 # ----------------
-FROM coco-ng-python AS webserver
+FROM adumbra-python AS webserver
 CMD ["gunicorn", "-c", "adumbra/gunicorn_config.py", "adumbra.webserver:app", "--no-sendfile", "--timeout", "180"]
 
 # ----------------
 # IA container
 # ----------------
-FROM coco-ng-python AS coco-ng-ia
+FROM adumbra-python AS adumbra-ia
 # Conditionally install pytorch-cuda if device warrants
 RUN packages="pytorch torchvision"; \
     if [ "$DEVICE" = "cuda" ]; then \

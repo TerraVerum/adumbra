@@ -3,7 +3,7 @@ volumes:
     external: false
 
 networks:
-  cocoannotator:
+  adumbra_network:
     external: false
 
 x-extends: &service-extends

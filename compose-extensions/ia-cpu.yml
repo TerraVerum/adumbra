@@ -1,5 +1,5 @@
 networks:
-  cocoannotator:
+  adumbra_network:
     external: false
 
 services:
@@ -10,7 +10,7 @@ services:
     image: ia_cpu
     build:
       dockerfile: ./Dockerfile.backend
-      target: coco-ng-ia
+      target: adumbra-ia
     ports:
       - 6000:6000
     environment:
