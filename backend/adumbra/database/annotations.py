@@ -5,14 +5,15 @@ import cv2
 import imantics as im
 import numpy as np
 from flask_login import current_user
-from mongoengine import DynamicDocument, fields
+from mongoengine import fields
 
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.events import Event
+from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 
-class AnnotationModel(DynamicDocument):
+class AnnotationModel(ShimmedDynamicDocument):
 
     COCO_PROPERTIES = [
         "id",
@@ -57,7 +58,6 @@ class AnnotationModel(DynamicDocument):
     events = fields.EmbeddedDocumentListField(Event)
 
     def __init__(self, image_id=None, **data):
-
         from adumbra.database.images import ImageModel
 
         if image_id is not None:
@@ -71,7 +71,7 @@ class AnnotationModel(DynamicDocument):
 
         super(AnnotationModel, self).__init__(**data)
 
-    def save(self, copy=False, *args, **kwargs):
+    def save(self, *args, copy=False, **kwargs):
 
         if self.dataset_id and not copy:
             dataset = DatasetModel.objects(id=self.dataset_id).first()
