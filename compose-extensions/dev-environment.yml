@@ -14,4 +14,8 @@ services:
     build:
       target: develop
     volumes:
+      # Enable hot reloading for frontend development
       - "${PWD}/client:/workspace/client"
+      # Override named mounts to track added models/data
+      - "${PWD}/datasets:/datasets"
+      - "${PWD}/models:/models"

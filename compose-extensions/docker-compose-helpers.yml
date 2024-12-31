@@ -7,9 +7,6 @@ services:
     networks:
       - adumbra_network
     volumes:
-      - "${PWD}/backend/adumbra/config:/workspace/config"
-      - "${PWD}/backend/adumbra/ia:/workspace/ia"
-      - "${PWD}/backend/adumbra/workers:/workspace/workers"
-      - "${PWD}/backend/adumbra/database:/workspace/database"
-      - "${PWD}/datasets:/datasets"
-      - "${PWD}/models:/models"
+      # Use named volumes instead of bind mounts (binds can be set in dev override)
+      - "datasets:/datasets"
+      - "models:/models"
