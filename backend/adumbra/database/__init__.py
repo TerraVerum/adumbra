@@ -1,20 +1,19 @@
 import json
 import typing as t
 
-from mongoengine import DynamicDocument, QuerySet, connect, fields
+from mongoengine import DynamicDocument, QuerySet, connect
 from mongoengine.base import BaseField
-from mongoengine.queryset.manager import queryset_manager
 
 from adumbra.config import Config
-from adumbra.database.annotations import *
-from adumbra.database.categories import *
-from adumbra.database.datasets import *
-from adumbra.database.events import *
-from adumbra.database.exports import *
-from adumbra.database.images import *
-from adumbra.database.lisence import *
-from adumbra.database.tasks import *
-from adumbra.database.users import *
+from adumbra.database.annotations import AnnotationModel
+from adumbra.database.categories import CategoryModel
+from adumbra.database.datasets import DatasetModel
+from adumbra.database.events import Event, SessionEvent
+from adumbra.database.exports import ExportModel
+from adumbra.database.images import ImageModel
+from adumbra.database.lisence import LicenseModel
+from adumbra.database.tasks import TaskModel
+from adumbra.database.users import UserModel
 
 FieldBase_T = t.TypeVar("FieldBase_T", bound=type[BaseField])
 
@@ -53,7 +52,7 @@ def fix_ids(q):
 
 def create_from_json(json_file):
 
-    with open(json_file) as file:
+    with open(json_file, encoding="utf-8") as file:
 
         data_json = json.load(file)
         for category in data_json.get("categories", []):

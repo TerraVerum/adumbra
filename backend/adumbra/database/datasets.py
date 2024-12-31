@@ -1,33 +1,34 @@
 import os
 
 from flask_login import current_user
-from mongoengine import *
+from mongoengine import fields
 
 from adumbra.config import Config
+from adumbra.database.mongo_shim import ShimmedDynamicDocument
 from adumbra.database.tasks import TaskModel
 
 
-class DatasetModel(DynamicDocument):
+class DatasetModel(ShimmedDynamicDocument):
 
-    id = SequenceField(primary_key=True)
-    name = StringField(required=True, unique=True)
-    directory = StringField()
-    thumbnails = StringField()
-    categories = ListField(default=[])
+    id = fields.SequenceField(primary_key=True)
+    name = fields.StringField(required=True, unique=True)
+    directory = fields.StringField()
+    thumbnails = fields.StringField()
+    categories = fields.ListField(default=[])
 
-    owner = StringField(required=True)
-    users = ListField(default=[])
+    owner = fields.StringField(required=True)
+    users = fields.ListField(default=[])
 
-    annotate_url = StringField(default="")
+    annotate_url = fields.StringField(default="")
 
-    default_annotation_metadata = DictField(default={})
+    default_annotation_metadata = fields.DictField(default={})
 
-    deleted = BooleanField(default=False)
-    deleted_date = DateTimeField()
+    deleted = fields.BooleanField(default=False)
+    deleted_date = fields.DateTimeField()
 
     def save(self, *args, **kwargs):
 
-        directory = os.path.join(Config.DATASET_DIRECTORY, self.name + "/")
+        directory = os.path.join(Config.DATASET_DIRECTORY, str(self.name) + "/")
         os.makedirs(directory, mode=0o777, exist_ok=True)
 
         self.directory = directory
@@ -50,7 +51,7 @@ class DatasetModel(DynamicDocument):
         from adumbra.workers.tasks import import_annotations
 
         task = TaskModel(
-            name="Import COCO format into {}".format(self.name),
+            name=f"Import COCO format into {self.name}",
             dataset_id=self.id,
             group="Annotation Import",
         )

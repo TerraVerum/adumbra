@@ -1,19 +1,18 @@
 import os
-import uuid
 
 import imantics as im
-import requests
-from mongoengine import DynamicDocument, fields
+from mongoengine import fields
 from PIL import Image, ImageFile
 
 from adumbra.database.annotations import AnnotationModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.events import Event, SessionEvent
+from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-class ImageModel(DynamicDocument):
+class ImageModel(ShimmedDynamicDocument):
 
     COCO_PROPERTIES = [
         "id",
@@ -151,6 +150,7 @@ class ImageModel(DynamicDocument):
 
             self.update(is_modified=False)
             return pil_image
+        return None
 
     def open_thumbnail(self):
         """
@@ -236,6 +236,7 @@ class ImageModel(DynamicDocument):
 
     # TODO: Fix why using the functions throws an error
     def permissions(self, user):
+        del user
         return {"delete": True, "download": True}
 
     def add_event(self, e):

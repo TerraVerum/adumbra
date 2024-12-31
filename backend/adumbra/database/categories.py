@@ -1,9 +1,11 @@
 import imantics as im
 from flask_login import current_user
-from mongoengine import DynamicDocument, fields
+from mongoengine import fields
+
+from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 
-class CategoryModel(DynamicDocument):
+class CategoryModel(ShimmedDynamicDocument):
 
     COCO_PROPERTIES = [
         "id",

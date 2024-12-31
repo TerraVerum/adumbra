@@ -1,10 +1,12 @@
 import datetime
 import typing as t
 
-from mongoengine import DynamicDocument, fields
+from mongoengine import fields
+
+from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 
-class TaskModel(DynamicDocument):
+class TaskModel(ShimmedDynamicDocument):
     id = fields.SequenceField(primary_key=True)
 
     # Type of task: Importer, Exporter, Scanner, etc.
@@ -71,7 +73,7 @@ class TaskModel(DynamicDocument):
 
     def set_progress(self, percent, socket=None):
 
-        self.update(progress=int(percent), completed=(percent >= 100))
+        self.update(progress=int(percent), completed=percent >= 100)
 
         # Send socket update every 10%
         if self._progress_update < percent or percent >= 100:

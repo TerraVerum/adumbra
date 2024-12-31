@@ -5,7 +5,12 @@ build-backend = "hatchling.build"
 [project]
 name = "adumbra"
 version = "1.0.0"
-authors = [{ name = "@ntjess" }, { name = "@jdrakes" }, { name = "@sixks" }, { name = "@jsbroks" }]
+authors = [
+    { name = "@ntjess" },
+    { name = "@jdrakes" },
+    { name = "@sixks" },
+    { name = "@jsbroks" },
+]
 
 dependencies = [
     "celery",
@@ -62,10 +67,21 @@ disable = [
     "too-few-public-methods",
     "use-implicit-booleaness-not-len",
     "useless-import-alias",
+    # These are specific to legacy code -- consider changing code instead of suppressing
+    # in the future
+    "logging-format-interpolation",
+    "super-with-arguments",
 ]
 max-args = 10
 max-attributes = 10
 max-locals = 20
+generated-member = [
+    "cv2.fillPoly",
+    "cv2.polylines",
+    "cv2.rectangle",
+    "cv2.circle",
+    "cv2.findContours",
+]
 
 [tool.pyright]
 typeCheckingMode = "basic"
