@@ -1,4 +1,5 @@
 import logging
+import os
 
 import cv2
 import numpy as np
@@ -15,14 +16,23 @@ SAM2_MODEL_CONFIG = AnnotatorConfig.SAM2_MODEL_CONFIG
 
 
 class SAM2:
-    def __init__(self):
-        print("zz info:", SAM2_MODEL_CONFIG, SAM2_MODEL_PATH, AnnotatorConfig.DEVICE)
-        # sam2 = sam2_model_registry[SAM2_MODEL_TYPE](checkpoint=SAM2_MODEL_PATH)
-        self.sam2_model = build_sam2(
-            SAM2_MODEL_CONFIG, ckpt_path=SAM2_MODEL_PATH, device=AnnotatorConfig.DEVICE
-        )
+    is_loaded = False
 
-        # mask_generator = SamAutomaticMaskGenerator(sam)
+    def __init__(self):
+        logger.info(
+            f"zz info: {SAM2_MODEL_CONFIG}, {SAM2_MODEL_PATH}, {AnnotatorConfig.DEVICE}"
+        )
+        SAM2_LOADED = os.path.isfile(SAM2_MODEL_PATH)
+        if SAM2_LOADED:
+            self.sam2_model = build_sam2(
+                SAM2_MODEL_CONFIG,
+                ckpt_path=SAM2_MODEL_PATH,
+                device=AnnotatorConfig.DEVICE,
+            )
+            self.is_loaded = True
+            logger.info("SAM2 model is loaded.")
+        else:
+            logger.warning("SAM2 model is disabled.")
 
     def setPredictor(self, threshold=0.0, max_hole_area=0.0, max_sprinkle_area=0.0):
         self.predictor = SAM2ImagePredictor(
@@ -40,8 +50,6 @@ class SAM2:
         )
 
     def getSegmentation(self):
-        annotations = []
-        id = 0
         for mask in self.masks:
             contours, _ = cv2.findContours(
                 mask.astype("uint8"), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE

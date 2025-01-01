@@ -1,23 +1,16 @@
-import eventlet
-
-eventlet.monkey_patch(thread=False)
-
 import logging
-import os
-import sys
-import threading
-import time
 
+import eventlet
 import requests
 from flask import Flask
 from flask_cors import CORS
-
-# from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from adumbra.config import Config
 from adumbra.database import create_from_json
 from adumbra.ia.api import blueprint as api
+
+eventlet.monkey_patch(thread=False)
 
 
 def create_app():
@@ -55,6 +48,6 @@ if Config.INITIALIZE_FROM_FILE:
 def index(path):
 
     if app.debug:
-        return requests.get("http://frontend:8080/{}".format(path)).text
+        return requests.get(f"http://frontend:8080/{path}", timeout=5).text
 
     return app.send_static_file("index.html")

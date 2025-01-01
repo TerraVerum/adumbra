@@ -16,14 +16,21 @@ ZIM_MODEL_TYPE = AnnotatorConfig.ZIM_MODEL_TYPE
 
 
 class ZIM:
+    is_loaded = False
+
     def __init__(self):
         device = AnnotatorConfig.DEVICE
         logger.info(f"zz info: {ZIM_MODEL_TYPE}, {ZIM_MODEL_PATH}, {device}")
-        zim_model = zim_model_registry[ZIM_MODEL_TYPE](checkpoint=ZIM_MODEL_PATH)
-        if os.getenv("DEVICE", "cuda") == "cuda" and torch.cuda.is_available():
-            zim_model.cuda()
-        # mask_generator = SamAutomaticMaskGenerator(sam)
-        self.predictor = ZimPredictor(zim_model)
+        ZIM_LOADED = os.path.isdir(ZIM_MODEL_PATH)
+        if ZIM_LOADED:
+            zim_model = zim_model_registry[ZIM_MODEL_TYPE](checkpoint=ZIM_MODEL_PATH)
+            if os.getenv("DEVICE", "cuda") == "cuda" and torch.cuda.is_available():
+                zim_model.cuda()
+            self.predictor = ZimPredictor(zim_model)
+            self.is_loaded = True
+            logger.info("ZIM model is loaded.")
+        else:
+            logger.warning("ZIM model is disabled.")
 
     def setImage(self, image):
         self.predictor.set_image(np.array(image, copy=True))
@@ -35,11 +42,9 @@ class ZIM:
             multimask_output=True,
         )
         # self.masks = np.squeeze(self.masks, axis=0)
-        self.masks = np.uint8(self.masks * 255)
+        self.masks = (self.masks * 255).astype(np.uint8)
 
     def getSegmentation(self):
-        annotations = []
-        id = 0
         for mask in self.masks:
             contours, _ = cv2.findContours(
                 mask.astype("uint8"), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
