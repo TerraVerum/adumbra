@@ -1,3 +1,5 @@
+ARG DEVICE=cpu
+
 FROM continuumio/miniconda3:latest AS build_base
 # Allow commercial use of the container
 ENV CONDA_CHANNELS="conda-forge"
@@ -55,15 +57,18 @@ CMD ["gunicorn", "-c", "adumbra/gunicorn_config.py", "adumbra.webserver:app", "-
 # ----------------
 # IA container
 # ----------------
-FROM adumbra-python AS adumbra-ia
-# Conditionally install pytorch-cuda if device warrants
-RUN packages="pytorch torchvision"; \
-    if [ "$DEVICE" = "cuda" ]; then \
-    packages="$packages pytorch-cuda=12.4"; \
-    fi; \
-    conda install -c nvidia -c pytorch -y $packages \
+FROM adumbra-python AS adumbra-ia-gpu
+RUN conda install -c nvidia -c pytorch -y \
+    pytorch torchvision pytorch-cuda=12.4 \
     && conda clean --all --yes
 
+FROM adumbra-python AS adumbra-ia-cpu
+RUN conda install -c pytorch -y \
+    pytorch torchvision \
+    && conda clean --all --yes
+
+
+FROM adumbra-ia-${DEVICE} AS adumbra-ia
 # ------
 # https://github.com/facebookresearch/sam2/blob/main/INSTALL.md
 # indicates we need to explicitly request they don't build a cuda extension.
