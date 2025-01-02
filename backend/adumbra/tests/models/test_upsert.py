@@ -19,9 +19,9 @@ class TestCategoryUpsert:
 
     def test_update_category(self):
         query = {"name": category1.get("name")}
-        set = {"name": "Upsert New", "color": "black"}
+        updates = {"name": "Upsert New", "color": "black"}
 
-        found = upsert(CategoryModel, query=query, update=set)
+        found = upsert(CategoryModel, query=query, update=updates)
 
-        assert found.name == set.get("name")
-        assert found.color == set.get("color")
+        assert found.name == updates.get("name")
+        assert found.color == updates.get("color")

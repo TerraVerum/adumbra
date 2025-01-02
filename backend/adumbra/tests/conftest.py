@@ -1,5 +1,5 @@
 import pytest
-from webserver import app
+from adumbra.webserver import app
 
 
 @pytest.fixture
