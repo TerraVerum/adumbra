@@ -5,12 +5,7 @@ from flask_login import current_user, login_required
 from flask_restx import Namespace, Resource
 
 from adumbra.config import Config
-from adumbra.database import (
-    AnnotationModel,
-    CategoryModel,
-    ImageModel,
-    SessionEvent,
-)
+from adumbra.database import AnnotationModel, CategoryModel, ImageModel, SessionEvent
 from adumbra.webserver.util import coco_util, profile, query_util, thumbnails
 
 api = Namespace("annotator", description="Annotator related operations")

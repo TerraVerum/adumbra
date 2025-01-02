@@ -27,6 +27,11 @@ jobs:
         working-directory: backend
         run: pip install -r requirements-dev-pinned.txt --no-deps
 
+      - name: Install Models
+        working-directory: backend
+        run: |
+          python -m requirements-ia/install_requirements.py
+
       - name: Run Unimport
         working-directory: backend
         run: |
