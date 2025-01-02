@@ -29,6 +29,7 @@ dependencies = [
     "pillow",
     "pycocotools",
     "pydantic",
+    "pydantic_settings",
     "pytest",
     "requests",
     "shapely",
@@ -37,7 +38,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["black", "isort", "pylint", "unimport", "pre-commit"]
+dev = ["black", "isort", "pylint", "unimport", "pre-commit", "pip-tools"]
 full = ["adumbra[dev]"]
 
 [tool.hatch.metadata]

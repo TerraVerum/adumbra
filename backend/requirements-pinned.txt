@@ -142,9 +142,13 @@ prompt-toolkit==3.0.48
 pycocotools==2.0.8
     # via adumbra (pyproject.toml)
 pydantic==2.10.4
-    # via adumbra (pyproject.toml)
+    # via
+    #   adumbra (pyproject.toml)
+    #   pydantic-settings
 pydantic-core==2.27.2
     # via pydantic
+pydantic-settings==2.7.1
+    # via adumbra (pyproject.toml)
 pymongo==4.10.1
     # via mongoengine
 pyparsing==3.2.0
@@ -157,6 +161,8 @@ python-dateutil==2.9.0.post0
     # via
     #   celery
     #   matplotlib
+python-dotenv==1.0.1
+    # via pydantic-settings
 python-engineio==4.11.1
     # via python-socketio
 python-socketio==5.12.0
