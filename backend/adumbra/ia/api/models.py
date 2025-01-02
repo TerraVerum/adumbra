@@ -6,9 +6,9 @@ from flask_restx import Namespace, Resource, reqparse
 from PIL import Image
 from werkzeug.datastructures import FileStorage
 
+from adumbra.ia.util.helpers import getSegmentation
 from adumbra.ia.util.sam2 import model as sam2
 from adumbra.ia.util.zim import model as zim
-from adumbra.ia.util.helpers import getSegmentation
 
 logger = logging.getLogger("gunicorn.error")
 

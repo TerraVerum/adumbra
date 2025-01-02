@@ -1,7 +1,7 @@
 import logging
+
 import cv2
 import numpy as np
-
 
 logger = logging.getLogger("gunicorn.error")
 
