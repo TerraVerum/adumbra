@@ -1,7 +1,6 @@
 import logging
 import os
 
-import cv2
 import numpy as np
 import torch
 from zim_anything import ZimPredictor, zim_model_registry
@@ -17,6 +16,9 @@ ZIM_MODEL_TYPE = AnnotatorConfig.ZIM_MODEL_TYPE
 
 class ZIM:
     is_loaded = False
+    masks: np.ndarray | None = None
+    scores: np.ndarray | None = None
+    logits: np.ndarray | None = None
 
     def __init__(self):
         device = AnnotatorConfig.DEVICE
@@ -41,25 +43,7 @@ class ZIM:
             point_labels=input_label,
             multimask_output=True,
         )
-        # self.masks = np.squeeze(self.masks, axis=0)
         self.masks = (self.masks * 255).astype(np.uint8)
-
-    def getSegmentation(self):
-        for mask in self.masks:
-            contours, _ = cv2.findContours(
-                mask.astype("uint8"), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-            )
-            # Convert the contour to the format required for segmentation in COCO format
-            segmentation = []
-            for contour in contours:
-                contour = contour.flatten().tolist()
-                contour_pairs = [
-                    (contour[i], contour[i + 1]) for i in range(0, len(contour), 2)
-                ]
-                segmentation.append(
-                    [int(coord) for pair in contour_pairs for coord in pair]
-                )
-        return segmentation
 
 
 model = ZIM()

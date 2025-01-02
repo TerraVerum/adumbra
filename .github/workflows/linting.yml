@@ -44,4 +44,4 @@ jobs:
 
       - name: Run Pylint (source files)
         if: always()
-        run: pylint --rcfile ./backend/pyproject.toml backend/adumbra
+        run: pylint --rcfile ./backend/pyproject.toml backend/adumbra/ia

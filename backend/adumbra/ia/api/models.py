@@ -8,6 +8,7 @@ from werkzeug.datastructures import FileStorage
 
 from adumbra.ia.util.sam2 import model as sam2
 from adumbra.ia.util.zim import model as zim
+from adumbra.ia.util.helpers import getSegmentation
 
 logger = logging.getLogger("gunicorn.error")
 
@@ -62,8 +63,8 @@ class Sam2Segmentation(Resource):
 
         sam2.setImage(im)
         sam2.calcMasks(np.array([points]), np.array([1]))
-        sam2.getSegmentation()
-        return {"segmentation": sam2.getSegmentation()}
+        segmentation = getSegmentation("sam2", sam2.masks)
+        return {"segmentation": segmentation}
 
 
 @api.route("/zim")
@@ -85,5 +86,5 @@ class ZimSegmentation(Resource):
 
         zim.setImage(im)
         zim.calcMasks(np.array([points]), np.array([1]))
-        zim.getSegmentation()
-        return {"segmentation": zim.getSegmentation()}
+        segmentation = getSegmentation("zim", zim.masks)
+        return {"segmentation": segmentation}
