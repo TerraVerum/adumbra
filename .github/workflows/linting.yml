@@ -21,11 +21,16 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: requirements-dev-pinned.txt
+          cache-dependency-path: backend/requirements-dev-pinned.txt
 
       - name: Install project dependencies
         working-directory: backend
         run: pip install -r requirements-dev-pinned.txt --no-deps
+
+      - name: Install Models
+        working-directory: backend/requirements-ia
+        run: |
+          python install_requirements.py
 
       - name: Run Unimport
         working-directory: backend
@@ -44,4 +49,4 @@ jobs:
 
       - name: Run Pylint (source files)
         if: always()
-        run: pylint --rcfile ./backend/pyproject.toml backend/adumbra
+        run: pylint --rcfile ./backend/pyproject.toml backend/adumbra/ia

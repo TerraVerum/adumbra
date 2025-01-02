@@ -31,7 +31,6 @@ dependencies = [
     "pydantic",
     "pytest",
     "requests",
-    "restx-monkey",
     "shapely",
     "watchdog",
     "werkzeug",
@@ -81,6 +80,8 @@ generated-member = [
     "cv2.rectangle",
     "cv2.circle",
     "cv2.findContours",
+    "cv2.RETR_EXTERNAL",
+    "cv2.CHAIN_APPROX_NONE",
 ]
 
 [tool.pyright]

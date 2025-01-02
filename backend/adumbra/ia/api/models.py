@@ -1,28 +1,16 @@
 import json
 import logging
-import os
 
 import numpy as np
 from flask_restx import Namespace, Resource, reqparse
 from PIL import Image
 from werkzeug.datastructures import FileStorage
 
-from adumbra.config import Config
+from adumbra.ia.util.helpers import getSegmentation
+from adumbra.ia.util.sam2 import model as sam2
+from adumbra.ia.util.zim import model as zim
 
 logger = logging.getLogger("gunicorn.error")
-
-SAM2_LOADED = os.path.isfile(Config.SAM2_MODEL_FILE)
-if SAM2_LOADED:
-    from adumbra.ia.util.sam2 import model as sam2
-else:
-    logger.warning("SAM2 model is disabled.")
-
-
-ZIM_LOADED = os.path.isdir(Config.ZIM_MODEL_FILE)
-if ZIM_LOADED:
-    from adumbra.ia.util.zim import model as zim
-else:
-    logger.warning("ZIM model is disabled.")
 
 
 api = Namespace("model", description="Model related operations")
@@ -52,16 +40,15 @@ zim_args.add_argument(
 
 
 @api.route("/sam2")
-class MaskRCNN(Resource):
+class Sam2Segmentation(Resource):
 
     @api.expect(image_upload)
     def post(self):
         """COCO data test"""
-        if not SAM2_LOADED:
+        if sam2.is_loaded is False:
             return {"disabled": True, "message": "SAM2 is disabled"}, 400
 
         args = sam2_args.parse_args()
-        # logger.warning("args: {}".format(args))
         data = json.loads(args["data"])
         logger.info(f"data: {data}")
 
@@ -74,24 +61,22 @@ class MaskRCNN(Resource):
         im = Image.open(img_file.stream).convert("RGB")
         im = np.asarray(im)
 
-        logger.warning("points: {}".format(points))
         sam2.setImage(im)
         sam2.calcMasks(np.array([points]), np.array([1]))
-        sam2.getSegmentation()
-        return {"segmentation": sam2.getSegmentation()}
+        segmentation = getSegmentation("sam2", sam2.masks)
+        return {"segmentation": segmentation}
 
 
 @api.route("/zim")
-class MaskRCNN(Resource):
+class ZimSegmentation(Resource):
 
     @api.expect(image_upload)
     def post(self):
         """COCO data test"""
-        if not ZIM_LOADED:
+        if zim.is_loaded is False:
             return {"disabled": True, "message": "ZIM is disabled"}, 400
 
         args = zim_args.parse_args()
-        # logger.warning("args: {}".format(args))
         data = json.loads(args["data"])
         points = data["points"][0]
 
@@ -99,8 +84,7 @@ class MaskRCNN(Resource):
         im = Image.open(img_file.stream).convert("RGB")
         im = np.asarray(im)
 
-        logger.warning("points: {}".format(points))
         zim.setImage(im)
         zim.calcMasks(np.array([points]), np.array([1]))
-        zim.getSegmentation()
-        return {"segmentation": zim.getSegmentation()}
+        segmentation = getSegmentation("zim", zim.masks)
+        return {"segmentation": segmentation}

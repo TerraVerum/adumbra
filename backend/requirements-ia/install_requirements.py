@@ -42,7 +42,6 @@ def install_requirements():
     reqs_text = [
         here.joinpath(req).read_text(encoding="utf-8")
         for (env, req) in env_requirements_map.items()
-        if os.getenv(env, "0") == "1"
     ]
     all_reqs = "\n".join(reqs_text)
 
