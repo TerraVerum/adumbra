@@ -1,6 +1,7 @@
 import json
 
 import pytest
+
 from adumbra.database import CategoryModel
 
 category1_id = 0
