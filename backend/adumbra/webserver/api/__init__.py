@@ -1,7 +1,4 @@
-import restx_monkey as monkey
 from flask import Blueprint
-
-monkey.patch_restx()
 from flask_restx import Api
 
 from adumbra.config import Config

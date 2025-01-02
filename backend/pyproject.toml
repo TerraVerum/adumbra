@@ -31,7 +31,6 @@ dependencies = [
     "pydantic",
     "pytest",
     "requests",
-    "restx-monkey",
     "shapely",
     "watchdog",
     "werkzeug",

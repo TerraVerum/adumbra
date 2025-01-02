@@ -67,9 +67,7 @@ flask-cors==5.0.0
 flask-login==0.6.3
     # via adumbra (pyproject.toml)
 flask-restx==1.3.0
-    # via
-    #   adumbra (pyproject.toml)
-    #   restx-monkey
+    # via adumbra (pyproject.toml)
 flask-socketio==5.5.0
     # via adumbra (pyproject.toml)
 fonttools==4.55.3
@@ -170,8 +168,6 @@ referencing==0.35.1
     #   jsonschema
     #   jsonschema-specifications
 requests==2.32.3
-    # via adumbra (pyproject.toml)
-restx-monkey==0.6.1
     # via adumbra (pyproject.toml)
 rpds-py==0.22.3
     # via
