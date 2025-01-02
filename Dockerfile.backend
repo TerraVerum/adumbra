@@ -85,5 +85,6 @@ ENV ZIM="1"
 COPY ./backend/requirements-ia/ /tmp/requirements-ia/
 RUN /tmp/requirements-ia/install_requirements.py
 
+COPY ./models/ /models/
 EXPOSE 6000
 CMD ["gunicorn", "-c", "adumbra/gunicorn_config.py", "adumbra.ia:app", "--bind", "0.0.0.0:6000", "--no-sendfile"]
