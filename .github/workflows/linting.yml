@@ -30,7 +30,7 @@ jobs:
       - name: Install Models
         working-directory: backend/requirements-ia
         run: |
-          ZIM=1 SAM2=1 python install_requirements.py
+          python install_requirements.py
 
       - name: Run Unimport
         working-directory: backend
