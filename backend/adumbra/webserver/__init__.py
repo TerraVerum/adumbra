@@ -1,16 +1,11 @@
-import eventlet
-
-eventlet.monkey_patch(thread=False)
-
 import logging
 import os
 
+import eventlet
 import requests
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from flask_socketio import SocketIO
-
-# from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from adumbra.config import CONFIG
@@ -19,6 +14,8 @@ from adumbra.webserver.api import blueprint as api
 from adumbra.webserver.authentication import login_manager
 from adumbra.webserver.sockets import socketio
 from adumbra.webserver.util import thumbnails
+
+eventlet.monkey_patch(thread=False)
 
 # import workers
 
@@ -86,7 +83,7 @@ def data(filepath):
 @app.route("/", defaults={"path": ""})
 def index(path):
     if app.debug:
-        return requests.get("http://frontend:8080/{}".format(path)).text
+        return requests.get(f"http://frontend:8080/{path}", timeout=30).text
 
     return app.send_static_file("index.html")
 
@@ -95,7 +92,7 @@ def index(path):
 @app.route("/api/model/<path:path>", methods=["GET", "POST", "PUT"])
 def proxy_request(path):
     json_data = None
-    data = None
+    form_data = None
     image = None
 
     print("try to proxy", flush=True)
@@ -112,25 +109,25 @@ def proxy_request(path):
         json_data = request.get_json()
     elif content_type.startswith("multipart/form-data"):
         # Handle form data request
-        data = request.form.get("data")
+        form_data = request.form.get("data")
         image = request.files.get("image")
 
     # Forward the request to the target server
     if request.method == "GET":
         print("in GET", flush=True)
-        response = requests.get(target_url)
+        response = requests.get(target_url, timeout=30)
     elif request.method == "POST":
-        print("will call with:", data, flush=True)
-        if data != None and image != None:
+        print("will call with:", form_data, flush=True)
+        if form_data is not None and image is not None:
             response = requests.post(
-                target_url, data={"data": data}, files={"image": image}
+                target_url, data={"data": form_data}, files={"image": image}, timeout=30
             )
-        elif json_data != None:
-            response = requests.post(target_url, json=json_data)
+        elif json_data is not None:
+            response = requests.post(target_url, json=json_data, timeout=30)
         print("response:", response, flush=True)
     elif request.method == "PUT":
         print("not handled right now", flush=True)
-        response = requests.put(target_url, json=request.get_json())
+        response = requests.put(target_url, json=request.get_json(), timeout=30)
 
     print("proxy reply:", response, flush=True)
     # Return the response from the target server
