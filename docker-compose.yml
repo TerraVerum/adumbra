@@ -49,7 +49,7 @@ services:
     ports:
       - "5001:5001"
     environment:
-      - SECRET_KEY=RandomSecretKeyHere
+      - FLASK_SECRET_KEY=RandomSecretKeyHere
       - FILE_WATCHER=true
       - NAME=Test Annotator
     depends_on:
