@@ -120,10 +120,3 @@ class AnnotationId(Resource):
         )
         newAnnotation = current_user.annotations.filter(id=annotation_id).first()
         return query_util.fix_ids(newAnnotation)
-
-
-# @api.route('/<int:annotation_id>/mask')
-# class AnnotationMask(Resource):
-#     def get(self, annotation_id):
-#         """ Returns the binary mask of an annotation """
-#         return query_util.fix_ids(AnnotationModel.objects(id=annotation_id).first())

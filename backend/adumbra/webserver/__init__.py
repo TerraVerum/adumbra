@@ -17,8 +17,6 @@ from adumbra.webserver.util import thumbnails
 
 eventlet.monkey_patch(thread=False)
 
-# import workers
-
 
 connect_mongo("webserver")
 

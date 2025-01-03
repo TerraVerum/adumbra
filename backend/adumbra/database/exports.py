@@ -1,9 +1,10 @@
 import datetime
 
-from mongoengine import DynamicDocument, fields
+from mongoengine import fields
+from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 
-class ExportModel(DynamicDocument):
+class ExportModel(ShimmedDynamicDocument):
 
     id = fields.SequenceField(primary_key=True)
     dataset_id = fields.IntField(required=True)

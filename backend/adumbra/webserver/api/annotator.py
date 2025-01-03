@@ -42,7 +42,6 @@ class AnnotatorData(Resource):
 
         current_user.update(preferences=data.get("user", {}))
 
-        annotated = False
         num_annotations = 0
         # Iterate every category passed in the data
         for category in data.get("categories", []):
@@ -192,7 +191,8 @@ class AnnotatorId(Resource):
         data["image"]["previous"] = pre.id if pre else None
         data["image"]["next"] = nex.id if nex else None
 
-        # Optimize query: query all annotation of specific image, and then categorize them according to the categories.
+        # Optimize query: query all annotation of specific image,
+        # and then categorize them according to the categories.
         all_annotations = (
             AnnotationModel.objects(image_id=image_id, deleted=False)
             .exclude("events")

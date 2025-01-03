@@ -127,7 +127,6 @@ class Username(Resource):
         password = args.get("password")
         if len(password) > 0:
             user.password = generate_password_hash(password, method="pbkdf2:sha256")
-            # user.password = generate_password_hash(password, method='sha256')
 
         user.save()
 
