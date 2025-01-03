@@ -3,5 +3,5 @@ zim_anything  # --no-deps
 easydict
 setuptools
 onnx
-onnxruntime-gpu  # --if="os.getenv('DEVICE', 'cpu') == 'gpu'"
+onnxruntime-gpu  # --if="os.getenv('DEVICE', 'cpu') == 'cuda'"
 onnxruntime  # --if="os.getenv('DEVICE', 'cpu') == 'cpu'"

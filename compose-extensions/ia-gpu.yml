@@ -6,6 +6,9 @@ services:
     extends:
       file: ${PWD}/compose-extensions/ia-cpu.yml
       service: ia
+    build:
+      args:
+        - DEVICE=cuda
     image: ia_gpu
     deploy:
         resources:

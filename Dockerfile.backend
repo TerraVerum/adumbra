@@ -57,7 +57,7 @@ CMD ["gunicorn", "-c", "adumbra/gunicorn_config.py", "adumbra.webserver:app", "-
 # ----------------
 # IA container
 # ----------------
-FROM adumbra-python AS adumbra-ia-gpu
+FROM adumbra-python AS adumbra-ia-cuda
 RUN conda install -c nvidia -c pytorch -y \
     pytorch torchvision pytorch-cuda=12.4 \
     && conda clean --all --yes
