@@ -1,4 +1,5 @@
-# from celery import shared_task
+import time
+
 from adumbra.database import TaskModel
 from adumbra.workers import celery
 from adumbra.workers.socket import create_socket
@@ -13,7 +14,6 @@ def long_task(n, task_id):
     socketio = create_socket()
 
     print(f"This task will take {n} seconds")
-    import time
 
     for i in range(n):
         print(i)

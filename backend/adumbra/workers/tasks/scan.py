@@ -1,14 +1,11 @@
 import os
 
 from adumbra.database import DatasetModel, ImageModel, TaskModel
-
-# from celery import shared_task
 from adumbra.workers import celery
 from adumbra.workers.socket import create_socket
 from adumbra.workers.tasks.thumbnails import thumbnail_generate_single_image
 
 
-# @shared_task
 @celery.task
 def scan_dataset(task_id, dataset_id):
 
@@ -23,14 +20,15 @@ def scan_dataset(task_id, dataset_id):
     task.info(f"Scanning {directory}")
 
     count = 0
-    for root, dirs, files in os.walk(directory):
+    for root, _, files in os.walk(directory):
 
         try:
             youarehere = toplevel.index(root.split("/")[-1])
             progress = int(((youarehere) / len(toplevel)) * 100)
             task.set_progress(progress, socket=socket)
-        except:
-            pass
+        # TODO: This is a broad exception, should be narrowed down as we see more errors
+        except Exception as e:  # pylint: disable=broad-except
+            print(e)
 
         if root.split("/")[-1].startswith("."):
             continue
@@ -48,10 +46,12 @@ def scan_dataset(task_id, dataset_id):
                     ImageModel.create_from_path(path, dataset.id).save()
                     count += 1
                     task.info(f"New file found: {path}")
-                except:
+                # TODO: This is a broad exception, should be narrowed down as we see more errors
+                except Exception as e:  # pylint: disable=broad-except
+                    print(e)
                     task.warning(f"Could not read {path}")
 
-    [
+    _ = [
         thumbnail_generate_single_image.delay(image.id)
         for image in ImageModel.objects(regenerate_thumbnail=True).all()
     ]

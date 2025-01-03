@@ -2,7 +2,6 @@ import json
 import os
 import time
 
-# import pycocotools.mask as mask
 import numpy as np
 from mongoengine import Q
 
@@ -16,8 +15,6 @@ from adumbra.database import (
     fix_ids,
 )
 from adumbra.workers import celery
-
-# from celery import shared_task
 from adumbra.workers.socket import create_socket
 
 
@@ -121,7 +118,7 @@ def export_annotations(task_id, dataset_id, categories, with_empty_images=False)
         os.makedirs(directory)
 
     task.info(f"Writing export to file {file_path}")
-    with open(file_path, "w") as fp:
+    with open(file_path, mode="w", encoding="utf-8") as fp:
         json.dump(coco, fp)
 
     task.info("Creating export object")
