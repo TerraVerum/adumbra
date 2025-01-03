@@ -15,6 +15,9 @@ docker compose up --build
 ```
 This will expose the application on http://localhost:8080.
 
+> [!IMPORTANT]
+> We use [`include`](https://docs.docker.com/compose/how-tos/multiple-compose-files/include/) to manage different configurations with minimal code duplication, which requires **Docker Composer 2.20.3** or later.
+
 ## Configuration
 ### Segmentation models
 You can optionally run SAM2 and/or Zim segmentation models on either the CPU or GPU. First, run the installation scripts to ensure the weights are available on your system:
