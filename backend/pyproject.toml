@@ -50,6 +50,7 @@ preview = true
 [tool.isort]
 profile = "black"
 combine_as_imports = true
+fail_under = 9
 
 [tool.unimport]
 ignore_init = true
