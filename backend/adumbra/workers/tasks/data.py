@@ -2,7 +2,6 @@ import json
 import os
 import time
 
-# import pycocotools.mask as mask
 import numpy as np
 from mongoengine import Q
 
@@ -16,9 +15,9 @@ from adumbra.database import (
     fix_ids,
 )
 from adumbra.workers import celery
-
-# from celery import shared_task
 from adumbra.workers.socket import create_socket
+
+# TODO: Fix pylint errors to get to score 10/10, will do in a separate PR
 
 
 @celery.task
@@ -121,7 +120,7 @@ def export_annotations(task_id, dataset_id, categories, with_empty_images=False)
         os.makedirs(directory)
 
     task.info(f"Writing export to file {file_path}")
-    with open(file_path, "w") as fp:
+    with open(file_path, mode="w", encoding="utf-8") as fp:
         json.dump(coco, fp)
 
     task.info("Creating export object")
@@ -223,7 +222,7 @@ def import_annotations(task_id, dataset_id, coco_json):
         task.info(f"Image {image_filename} found")
         image_model = image_model[0]
         images_id[image_id] = image_model
-        categories_by_image[image_id] = list()
+        categories_by_image[image_id] = []
 
     task.info("===== Import Annotations =====")
     for annotation in coco_annotations:
@@ -290,8 +289,7 @@ def import_annotations(task_id, dataset_id, coco_json):
             annotation_model.update(deleted=False, isbbox=isbbox)
             task.info(f"Annotation already exists (i:{image_id}, c:{category_id})")
 
-    for image_id in images_id:
-        image_model = images_id[image_id]
+    for image_id, image_model in images_id.items():
         category_ids = categories_by_image[image_id]
         all_category_ids = list(image_model.category_ids)
         all_category_ids += category_ids
