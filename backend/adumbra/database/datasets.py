@@ -3,7 +3,7 @@ import os
 from flask_login import current_user
 from mongoengine import fields
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.database.mongo_shim import ShimmedDynamicDocument
 from adumbra.database.tasks import TaskModel
 
@@ -28,7 +28,7 @@ class DatasetModel(ShimmedDynamicDocument):
 
     def save(self, *args, **kwargs):
 
-        directory = os.path.join(Config.DATASET_DIRECTORY, str(self.name) + "/")
+        directory = os.path.join(CONFIG.dataset_directory, str(self.name) + "/")
         os.makedirs(directory, mode=0o777, exist_ok=True)
 
         self.directory = directory

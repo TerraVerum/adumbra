@@ -1,17 +1,7 @@
-from adumbra.config import Config
+from adumbra.config import CONFIG
 
-bind = "0.0.0.0:5001"
-backlog = 2048
 
-workers = 1
-worker_class = "eventlet"
-worker_connections = 1000
-timeout = 60
-keepalive = 2
-
-reload = Config.DEBUG
-preload = Config.PRELOAD
-
-errorlog = "-"
-loglevel = Config.LOG_LEVEL
-accesslog = None
+def __getattr__(name):
+    # Allow setting config values where gunicorn expects, but manage them with
+    # pydantic settings
+    return getattr(CONFIG.gunicorn, name)

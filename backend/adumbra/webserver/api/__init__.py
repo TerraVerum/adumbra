@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask_restx import Api
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.webserver.api.admin import api as ns_admin
 from adumbra.webserver.api.annotations import api as ns_annotations
 from adumbra.webserver.api.annotator import api as ns_annotator
@@ -21,8 +21,8 @@ blueprint = Blueprint("api", __name__, url_prefix="/api")
 
 api = Api(
     blueprint,
-    title=Config.NAME,
-    version=Config.VERSION,
+    title=CONFIG.name,
+    version=CONFIG.version,
 )
 
 # Remove default namespace

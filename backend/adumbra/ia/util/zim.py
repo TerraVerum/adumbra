@@ -5,13 +5,13 @@ import numpy as np
 import torch
 from zim_anything import ZimPredictor, zim_model_registry
 
-from adumbra.config import Config as AnnotatorConfig
+from adumbra.config import CONFIG as AnnotatorConfig
 
 logger = logging.getLogger("gunicorn.error")
 
 MODEL_DIR = "/workspace/models"
-ZIM_MODEL_PATH = AnnotatorConfig.ZIM_MODEL_FILE
-ZIM_MODEL_TYPE = AnnotatorConfig.ZIM_MODEL_TYPE
+ZIM_MODEL_PATH = AnnotatorConfig.zim.default_model_path
+ZIM_MODEL_TYPE = AnnotatorConfig.zim.default_model_type
 
 
 class ZIM:
@@ -21,7 +21,7 @@ class ZIM:
     logits: np.ndarray | None = None
 
     def __init__(self):
-        device = AnnotatorConfig.DEVICE
+        device = AnnotatorConfig.ia_device
         logger.info(f"zz info: {ZIM_MODEL_TYPE}, {ZIM_MODEL_PATH}, {device}")
         ZIM_LOADED = os.path.isdir(ZIM_MODEL_PATH)
         if ZIM_LOADED:

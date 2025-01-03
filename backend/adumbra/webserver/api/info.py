@@ -1,6 +1,6 @@
 from flask_restx import Namespace, Resource
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.database import TaskModel, UserModel
 from adumbra.workers.tasks import long_task
 
@@ -17,10 +17,10 @@ class Info(Resource):
             "author": "Nathan Jessurun, James Drakes, SixK",
             # "demo": "",
             "repo": "https://github.com/TerraVerum/adumbra",
-            "git": {"tag": Config.VERSION},
-            "login_enabled": not Config.LOGIN_DISABLED,
+            "git": {"tag": CONFIG.version},
+            "login_enabled": not CONFIG.login_disabled,
             "total_users": UserModel.objects.count(),
-            "allow_registration": Config.ALLOW_REGISTRATION,
+            "allow_registration": CONFIG.allow_registration,
         }
 
 

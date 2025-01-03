@@ -1,29 +1,60 @@
-import os
+import typing as t
+
+from pydantic import BaseModel, StringConstraints
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from adumbra.config.version_util import VersionControl
-
-
-def _get_bool(key, default_value):
-    if key in os.environ:
-        value = os.environ[key]
-        if value == "True" or value == "true" or value == "1":
-            return True
-        return False
-    return default_value
-
 
 version_info = VersionControl()
 
 
-class Config:
+class IAModelSettings(BaseModel):
+    default_model_path: str = ""
+    default_model_type: str = ""
+    default_model_config: str = ""
 
-    VERSION = version_info.get_tag()
 
-    NAME = os.getenv("NAME", "Adumbra")
+class GunicornSettings(BaseSettings):
+    bind: str = "0.0.0.0:5001"
+    backlog: int = 2048
+
+    workers: int = 1
+    worker_class: str = "eventlet"
+    worker_connections: int = 1000
+    timeout: int = 60
+    keepalive: int = 2
+
+    reload: bool = False
+    preload: bool = False
+
+    errorlog: str = "-"
+    loglevel: str = "debug"
+    accesslog: str | None = None
+
+
+class FlaskSettings(BaseSettings):
+    # Flask expects uppercase keys
+
+    # Give default value that fails constraint so user is prompted to add their
+    # own FLASK_SECRET_KEY if unset
+    SECRET_KEY: t.Annotated[str, StringConstraints(min_length=10)] = ""
+
+
+class CelerySettings(BaseSettings):
+    broker_url: str = "amqp://user:password@messageq:5672//"
+    result_backend: str = "mongodb://database/flask"
+
+
+class Config(BaseSettings):
+    model_config = SettingsConfigDict(env_nested_delimiter="_")
+
+    version: str = version_info.get_tag()
+
+    name: str = "Adumbra"
 
     ### File Watcher
-    FILE_WATCHER = os.getenv("FILE_WATCHER", False)
-    IGNORE_DIRECTORIES = ["_thumbnail", "_settings"]
+    file_watcher: bool = False
+    ignore_directories: list[str] = ["_thumbnail", "_settings"]
 
     # Flask/Gunicorn
     #
@@ -40,42 +71,31 @@ class Config:
     #       in this number of seconds it is killed and a new worker is
     #       spawned to replace it.
     #
-    SWAGGER_UI_JSONEDITOR = True
-    DEBUG = os.getenv("DEBUG", "false").lower() == "true"
-    PRELOAD = False
+    gunicorn: GunicornSettings = GunicornSettings()
+    flask: FlaskSettings = FlaskSettings()
 
-    MAX_CONTENT_LENGTH = os.getenv("MAX_CONTENT_LENGTH", 1 * 1024 * 1024 * 1024)  # 1GB
-    MONGODB_HOST = os.getenv("MONGODB_HOST", "mongodb://database/flask")
-    SECRET_KEY = os.getenv("SECRET_KEY", "<--- CHANGE THIS KEY --->")
-
-    LOG_LEVEL = "debug"
-    WORKER_CONNECTIONS = 1000
-
-    TESTING = os.getenv("TESTING", False)
+    max_content_length: int = 1 * 1024 * 1024 * 1024  # 1GB
+    mongodb_host: str = "mongodb://database/flask"
 
     ### Workers
-    CELERY_BROKER_URL = os.getenv(
-        "CELERY_BROKER_URL", "amqp://user:password@messageq:5672//"
-    )
-    CELERY_RESULT_BACKEND = os.getenv(
-        "CELERY_RESULT_BACKEND", "mongodb://database/flask"
-    )
+    celery = CelerySettings()
 
     ### Dataset Options
-    DATASET_DIRECTORY = os.getenv("DATASET_DIRECTORY", "/datasets/")
-    INITIALIZE_FROM_FILE = os.getenv("INITIALIZE_FROM_FILE")
+    dataset_directory: str = "/datasets/"
+    initialize_from_file: str | None = None
 
     ### User Options
-    LOGIN_DISABLED = _get_bool("LOGIN_DISABLED", False)
-    ALLOW_REGISTRATION = _get_bool("ALLOW_REGISTRATION", True)
+    login_disabled: bool = False
+    allow_registration: bool = True
 
     ### Models
-    SAM2_MODEL_FILE = os.getenv("SAM2_MODEL_FILE", "")
-    SAM2_MODEL_CONFIG = os.getenv("SAM2_MODEL_CONFIG", "")
-    ZIM_MODEL_FILE = os.getenv("ZIM_MODEL_FILE", "")
-    ZIM_MODEL_TYPE = os.getenv("ZIM_MODEL_TYPE", "")
+    sam2: IAModelSettings = IAModelSettings(default_model_path="/models/sam2")
+    zim: IAModelSettings = IAModelSettings(
+        default_model_path="/models/zim", default_model_type="vit_b"
+    )
 
-    DEVICE = os.getenv("DEVICE", "cuda")
+    ia_device: str = "cuda"
 
 
-__all__ = ["Config"]
+CONFIG = Config()
+__all__ = ["CONFIG"]

@@ -4,7 +4,7 @@ from flask import request
 from flask_login import current_user, login_required
 from flask_restx import Namespace, Resource
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.database import AnnotationModel, CategoryModel, ImageModel, SessionEvent
 from adumbra.webserver.util import coco_util, profile, query_util, thumbnails
 
@@ -174,7 +174,7 @@ class AnnotatorId(Resource):
         nex = images.filter(file_name__gt=image.file_name).order_by("file_name").first()
 
         preferences = {}
-        if not Config.LOGIN_DISABLED:
+        if not CONFIG.login_disabled:
             preferences = current_user.preferences
 
         # Generate data about the image to return to client

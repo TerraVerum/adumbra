@@ -3,7 +3,7 @@ import re
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.database import ImageModel
 from adumbra.webserver.util.thumbnails import generate_thumbnail
 
@@ -58,5 +58,5 @@ class ImageFolderHandler(FileSystemEventHandler):
 
 def run_watcher():
     observer = Observer()
-    observer.schedule(ImageFolderHandler(), Config.DATASET_DIRECTORY, recursive=True)
+    observer.schedule(ImageFolderHandler(), CONFIG.dataset_directory, recursive=True)
     observer.start()
