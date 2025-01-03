@@ -1,6 +1,6 @@
 import typing as t
 
-from pydantic import BaseModel, StringConstraints
+from pydantic import AliasChoices, BaseModel, Field, StringConstraints
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from adumbra.config.version_util import VersionControl
@@ -37,7 +37,7 @@ class FlaskSettings(BaseSettings):
 
     # Give default value that fails constraint so user is prompted to add their
     # own FLASK_SECRET_KEY if unset
-    SECRET_KEY: t.Annotated[str, StringConstraints(min_length=10)] = ""
+    SECRET_KEY: t.Annotated[str, StringConstraints(min_length=10)] = "CHANGE_ME!"
 
 
 class CelerySettings(BaseSettings):
@@ -46,7 +46,7 @@ class CelerySettings(BaseSettings):
 
 
 class Config(BaseSettings):
-    model_config = SettingsConfigDict(env_nested_delimiter="_")
+    model_config = SettingsConfigDict(env_nested_delimiter="__")
 
     version: str = version_info.get_tag()
 
@@ -78,7 +78,7 @@ class Config(BaseSettings):
     mongodb_host: str = "mongodb://database/flask"
 
     ### Workers
-    celery = CelerySettings()
+    celery: CelerySettings = CelerySettings()
 
     ### Dataset Options
     dataset_directory: str = "/datasets/"
@@ -94,7 +94,9 @@ class Config(BaseSettings):
         default_model_path="/models/zim", default_model_type="vit_b"
     )
 
-    ia_device: str = "cuda"
+    ia_device: str = Field(
+        default="cpu", validation_alias=AliasChoices("device", "ia_device")
+    )
 
 
 CONFIG = Config()
