@@ -2,16 +2,11 @@ import logging
 import os
 
 import numpy as np
-import torch
 from zim_anything import ZimPredictor, zim_model_registry
 
-from adumbra.config import CONFIG as AnnotatorConfig
+from adumbra.config import CONFIG
 
 logger = logging.getLogger("gunicorn.error")
-
-MODEL_DIR = "/workspace/models"
-ZIM_MODEL_PATH = AnnotatorConfig.zim.default_model_path
-ZIM_MODEL_TYPE = AnnotatorConfig.zim.default_model_type
 
 
 class ZIM:
@@ -21,16 +16,18 @@ class ZIM:
     logits: np.ndarray | None = None
 
     def __init__(self):
-        device = AnnotatorConfig.ia_device
-        logger.info(f"zz info: {ZIM_MODEL_TYPE}, {ZIM_MODEL_PATH}, {device}")
-        ZIM_LOADED = os.path.isdir(ZIM_MODEL_PATH)
+        ia_settings = CONFIG.ia
+        model_path = ia_settings.zim.default_model_path
+        model_type = ia_settings.zim.default_model_type
+        device = ia_settings.get_best_device()
+
+        logger.info(f"ZIM info: {model_type}, {model_path}, {device}")
+        ZIM_LOADED = os.path.isdir(model_path)
         if ZIM_LOADED:
-            zim_model = zim_model_registry[ZIM_MODEL_TYPE](checkpoint=ZIM_MODEL_PATH)
-            if os.getenv("DEVICE", "cuda") == "cuda" and torch.cuda.is_available():
-                zim_model.cuda()
+            zim_model = zim_model_registry[model_type](checkpoint=model_path).to(device)
             self.predictor = ZimPredictor(zim_model)
             self.is_loaded = True
-            logger.info("ZIM model is loaded.")
+            logger.info(f"ZIM model is loaded on device {device}.")
         else:
             logger.warning("ZIM model is disabled.")
 
