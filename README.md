@@ -15,6 +15,9 @@ docker compose up --build
 ```
 This will expose the application on http://localhost:8080.
 
+> [!IMPORTANT]
+> We use [`include`](https://docs.docker.com/compose/how-tos/multiple-compose-files/include/) to manage different configurations with minimal code duplication, which requires **Docker Composer 2.20.3** or later.
+
 ## Configuration
 ### Segmentation models
 You can optionally run SAM2 and/or Zim segmentation models on either the CPU or GPU. First, run the installation scripts to ensure the weights are available on your system:
@@ -33,8 +36,8 @@ docker compose -f docker-compose.yml --profile ia-gpu up --build
 # Or ia-cpu profile, but not both at once
 ```
 
-#### Note
-GPU models currently only expose cuda 0, so you may need to adjust [`ia-gpu.yml`](compose-extensions/ia-gpu.yml) to match your system.
+> [!IMPORTANT]
+> GPU models currently only expose cuda 0, so you may need to adjust [`ia-gpu.yml`](compose-extensions/ia-gpu.yml) to match your system.
 
 ### Development mode
 To run the application in development mode, you can use the following command:
