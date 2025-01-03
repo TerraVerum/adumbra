@@ -494,6 +494,19 @@ class DatasetDataId(Resource):
         images = images.skip(page * per_page).limit(per_page)
         images_json = query_util.fix_ids(images)
 
+        # TODO: investigate additional metadata for image json response
+        # for image in images:
+        #     image_json = query_util.fix_ids(image)
+
+        #     query = AnnotationModel.objects(image_id=image.id, deleted=False)
+        #     category_ids = query.distinct('category_id')
+        #     categories = CategoryModel.objects(id__in=category_ids).only('name', 'color')
+
+        #     image_json['annotations'] = query.count()
+        #     image_json['categories'] = query_util.fix_ids(categories)
+
+        #     images_json.append(image_json)
+
         subdirectories = [
             f
             for f in sorted(os.listdir(directory))
