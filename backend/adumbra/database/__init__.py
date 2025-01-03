@@ -4,7 +4,7 @@ import typing as t
 from mongoengine import DynamicDocument, QuerySet, connect
 from mongoengine.base import BaseField
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.database.annotations import AnnotationModel
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
@@ -20,7 +20,7 @@ FieldBase_T = t.TypeVar("FieldBase_T", bound=type[BaseField])
 
 def connect_mongo(name, host=None):
     if host is None:
-        host = Config.MONGODB_HOST
+        host = CONFIG.mongodb_host
     connect(name, host=host)
 
 

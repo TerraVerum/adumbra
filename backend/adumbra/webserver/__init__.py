@@ -13,7 +13,7 @@ from flask_socketio import SocketIO
 # from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.database import ImageModel, connect_mongo, create_from_json
 from adumbra.webserver.api import blueprint as api
 from adumbra.webserver.authentication import login_manager
@@ -41,7 +41,7 @@ def create_app():
         static_folder="../dist",
     )
 
-    flask.config.from_object(Config)
+    flask.config.from_object(CONFIG)
 
     CORS(flask)
 
@@ -55,7 +55,7 @@ def create_app():
         flask,
         async_mode="eventlet",
         cors_allowed_origins="*",
-        message_queue=Config.CELERY_BROKER_URL,
+        message_queue=CONFIG.celery.broker_url,
     )
     # Remove all poeple who were annotating when
     # the server shutdown
@@ -72,8 +72,8 @@ app.logger.handlers = logger.handlers
 app.logger.setLevel(logger.level)
 
 
-if Config.INITIALIZE_FROM_FILE:
-    create_from_json(Config.INITIALIZE_FROM_FILE)
+if CONFIG.initialize_from_file:
+    create_from_json(CONFIG.initialize_from_file)
 
 
 @app.route("/assets/<path:filepath>")

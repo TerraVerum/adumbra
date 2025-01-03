@@ -6,7 +6,7 @@ from flask import session
 from flask_login import current_user
 from flask_socketio import SocketIO, disconnect, emit, join_room, leave_room
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.database import ImageModel, SessionEvent
 
 logger = logging.getLogger("gunicorn.error")
@@ -18,7 +18,7 @@ socketio = SocketIO()
 def authenticated_only(f):
     @functools.wraps(f)
     def wrapped(*args, **kwargs):
-        if current_user.is_authenticated or Config.LOGIN_DISABLED:
+        if current_user.is_authenticated or CONFIG.login_disabled:
             return f(*args, **kwargs)
         else:
             disconnect()

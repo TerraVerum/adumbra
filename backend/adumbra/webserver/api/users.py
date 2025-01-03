@@ -4,7 +4,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from flask_restx import Namespace, Resource, reqparse
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.database import UserModel
 from adumbra.webserver.util.query_util import fix_ids
 
@@ -32,7 +32,7 @@ class User(Resource):
     @login_required
     def get(self):
         """Get information of current user"""
-        if Config.LOGIN_DISABLED:
+        if CONFIG.login_disabled:
             return current_user.to_json()
 
         user_json = fix_ids(current_user)
@@ -74,7 +74,7 @@ class UserRegister(Resource):
 
         users = UserModel.objects.count()
 
-        if not Config.ALLOW_REGISTRATION and users != 0:
+        if not CONFIG.allow_registration and users != 0:
             return {
                 "success": False,
                 "message": "Registration of new accounts is disabled.",

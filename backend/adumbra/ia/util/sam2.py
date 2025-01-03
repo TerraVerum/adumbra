@@ -5,13 +5,13 @@ import numpy as np
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
 
-from adumbra.config import Config as AnnotatorConfig
+from adumbra.config import CONFIG as AnnotatorConfig
 
 logger = logging.getLogger("gunicorn.error")
 
 MODEL_DIR = "/workspace/models"
-SAM2_MODEL_PATH = AnnotatorConfig.SAM2_MODEL_FILE
-SAM2_MODEL_CONFIG = AnnotatorConfig.SAM2_MODEL_CONFIG
+SAM2_MODEL_PATH = AnnotatorConfig.sam2.default_model_path
+SAM2_MODEL_CONFIG = AnnotatorConfig.sam2.default_model_config
 
 
 class SAM2:
@@ -23,14 +23,14 @@ class SAM2:
 
     def __init__(self):
         logger.info(
-            f"zz info: {SAM2_MODEL_CONFIG}, {SAM2_MODEL_PATH}, {AnnotatorConfig.DEVICE}"
+            f"zz info: {SAM2_MODEL_CONFIG}, {SAM2_MODEL_PATH}, {AnnotatorConfig.ia_device}"
         )
         SAM2_LOADED = os.path.isfile(SAM2_MODEL_PATH)
         if SAM2_LOADED:
             self.sam2_model = build_sam2(
                 SAM2_MODEL_CONFIG,
                 ckpt_path=SAM2_MODEL_PATH,
-                device=AnnotatorConfig.DEVICE,
+                device=AnnotatorConfig.ia_device,
             )
             self.is_loaded = True
             logger.info("SAM2 model is loaded.")

@@ -6,7 +6,7 @@ from flask import Flask
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from adumbra.config import Config
+from adumbra.config import CONFIG
 from adumbra.database import create_from_json
 from adumbra.ia.api import blueprint as api
 
@@ -22,7 +22,7 @@ def create_app():
 
     flask = Flask(__name__, static_url_path="", static_folder="../dist")
 
-    flask.config.from_object(Config)
+    flask.config.from_object(CONFIG)
 
     CORS(flask)
 
@@ -39,8 +39,8 @@ app.logger.handlers = logger.handlers
 app.logger.setLevel(logger.level)
 
 
-if Config.INITIALIZE_FROM_FILE:
-    create_from_json(Config.INITIALIZE_FROM_FILE)
+if CONFIG.initialize_from_file:
+    create_from_json(CONFIG.initialize_from_file)
 
 
 @app.route("/", defaults={"path": ""})
