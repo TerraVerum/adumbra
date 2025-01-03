@@ -1,6 +1,6 @@
 import datetime
 
-from mongoengine import fields, DynamicDocument, QuerySet
+from mongoengine import DynamicDocument, QuerySet, fields
 
 
 class ExportModel(DynamicDocument):

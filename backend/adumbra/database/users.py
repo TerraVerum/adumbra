@@ -1,7 +1,7 @@
 import datetime
 
 from flask_login import UserMixin
-from mongoengine import Q, fields, DynamicDocument, QuerySet
+from mongoengine import DynamicDocument, Q, QuerySet, fields
 
 from adumbra.database.annotations import AnnotationModel
 from adumbra.database.categories import CategoryModel

@@ -1,6 +1,6 @@
 import imantics as im
 from flask_login import current_user
-from mongoengine import fields, DynamicDocument, QuerySet
+from mongoengine import DynamicDocument, QuerySet, fields
 
 
 class CategoryModel(DynamicDocument):

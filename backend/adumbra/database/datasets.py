@@ -1,7 +1,7 @@
 import os
 
 from flask_login import current_user
-from mongoengine import fields, DynamicDocument, QuerySet
+from mongoengine import DynamicDocument, QuerySet, fields
 
 from adumbra.config import CONFIG
 from adumbra.database.tasks import TaskModel

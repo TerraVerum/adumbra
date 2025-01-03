@@ -1,7 +1,7 @@
 import os
 
 import imantics as im
-from mongoengine import fields, DynamicDocument, QuerySet
+from mongoengine import DynamicDocument, QuerySet, fields
 from PIL import Image, ImageFile
 
 from adumbra.database.annotations import AnnotationModel

@@ -1,7 +1,7 @@
 import datetime
 import typing as t
 
-from mongoengine import fields, DynamicDocument, QuerySet
+from mongoengine import DynamicDocument, QuerySet, fields
 
 
 class TaskModel(DynamicDocument):

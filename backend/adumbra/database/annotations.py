@@ -5,7 +5,7 @@ import cv2
 import imantics as im
 import numpy as np
 from flask_login import current_user
-from mongoengine import fields, DynamicDocument, QuerySet
+from mongoengine import DynamicDocument, QuerySet, fields
 
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
