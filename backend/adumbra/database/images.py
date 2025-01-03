@@ -1,18 +1,18 @@
 import os
 
 import imantics as im
-from mongoengine import fields
+from mongoengine import fields, DynamicDocument, QuerySet
 from PIL import Image, ImageFile
 
 from adumbra.database.annotations import AnnotationModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.events import Event, SessionEvent
-from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-class ImageModel(ShimmedDynamicDocument):
+class ImageModel(DynamicDocument):
+    objects: QuerySet
 
     COCO_PROPERTIES = [
         "id",

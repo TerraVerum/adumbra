@@ -5,15 +5,15 @@ import cv2
 import imantics as im
 import numpy as np
 from flask_login import current_user
-from mongoengine import fields
+from mongoengine import fields, DynamicDocument, QuerySet
 
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.events import Event
-from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 
-class AnnotationModel(ShimmedDynamicDocument):
+class AnnotationModel(DynamicDocument):
+    objects: QuerySet
 
     COCO_PROPERTIES = [
         "id",

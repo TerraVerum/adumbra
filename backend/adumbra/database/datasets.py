@@ -1,14 +1,14 @@
 import os
 
 from flask_login import current_user
-from mongoengine import fields
+from mongoengine import fields, DynamicDocument, QuerySet
 
 from adumbra.config import CONFIG
-from adumbra.database.mongo_shim import ShimmedDynamicDocument
 from adumbra.database.tasks import TaskModel
 
 
-class DatasetModel(ShimmedDynamicDocument):
+class DatasetModel(DynamicDocument):
+    objects: QuerySet
 
     id = fields.SequenceField(primary_key=True)
     name = fields.StringField(required=True, unique=True)

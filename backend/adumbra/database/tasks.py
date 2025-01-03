@@ -1,12 +1,12 @@
 import datetime
 import typing as t
 
-from mongoengine import fields
-
-from adumbra.database.mongo_shim import ShimmedDynamicDocument
+from mongoengine import fields, DynamicDocument, QuerySet
 
 
-class TaskModel(ShimmedDynamicDocument):
+class TaskModel(DynamicDocument):
+    objects: QuerySet
+
     id = fields.SequenceField(primary_key=True)
 
     # Type of task: Importer, Exporter, Scanner, etc.

@@ -1,16 +1,16 @@
 import datetime
 
 from flask_login import UserMixin
-from mongoengine import Q, fields
+from mongoengine import Q, fields, DynamicDocument, QuerySet
 
 from adumbra.database.annotations import AnnotationModel
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.images import ImageModel
-from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 
-class UserModel(ShimmedDynamicDocument, UserMixin):
+class UserModel(DynamicDocument, UserMixin):
+    objects: QuerySet
 
     password = fields.StringField(required=True)
     username = fields.StringField(max_length=25, required=True, unique=True)
