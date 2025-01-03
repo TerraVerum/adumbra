@@ -11,7 +11,7 @@ api = Namespace("export", description="Export related operations")
 
 
 @api.route("/<int:export_id>")
-class DatasetExports(Resource):
+class DatasetExportsRoot(Resource):
 
     @login_required
     def get(self, export_id):
@@ -45,7 +45,7 @@ class DatasetExports(Resource):
 
 
 @api.route("/<int:export_id>/download")
-class DatasetExports(Resource):
+class DatasetExportsDownload(Resource):
 
     @login_required
     def get(self, export_id):
@@ -64,9 +64,9 @@ class DatasetExports(Resource):
                 "message": "You do not have permission to download the dataset's annotations"
             }, 403
 
-        # return send_file(export.path, attachment_filename=f"{dataset.name.encode('utf-8')}-{'-'.join(export.tags).encode('utf-8')}.json", as_attachment=True)
+        encoded_dataset_name = dataset.name.encode("utf-8")
         return send_file(
             export.path,
-            download_name=f"{dataset.name.encode('utf-8')}-{'-'.join(export.tags).encode('utf-8')}.json",
+            download_name=f"{encoded_dataset_name}-{'-'.join(export.tags).encode('utf-8')}.json",
             as_attachment=True,
         )

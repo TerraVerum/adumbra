@@ -1,5 +1,5 @@
 import numpy as np
-import pycocotools.mask as mask
+from pycocotools import mask
 from shapely.geometry import LineString
 
 from adumbra.database import (
@@ -13,7 +13,8 @@ from adumbra.database import (
 
 def paperjs_to_coco(image_width, image_height, paperjs):
     """
-    Given a paperjs CompoundPath, converts path into coco segmentation format based on children paths
+    Given a paperjs CompoundPath, converts path into coco segmentation format
+    based on children paths
 
     :param image_width: Width of Image
     :param image_height: Height of Image
@@ -78,11 +79,12 @@ def paperjs_to_coco(image_width, image_height, paperjs):
     return segments, area, bbox
 
 
-def paperjs_to_coco_cliptobounds(
-    image_width, image_height, paperjs
-):  # todo: there's lots of edge cases to this. It needs a different solution or many many if statements :P
+# todo: there's lots of edge cases to this.
+# It needs a different solution or many many if statements :P
+def paperjs_to_coco_cliptobounds(image_width, image_height, paperjs):
     """
-    Given a paperjs CompoundPath, converts path into coco segmentation format based on children paths
+    Given a paperjs CompoundPath, converts path into coco segmentation format
+    based on children paths
 
     :param image_width: Width of Image
     :param image_height: Height of Image
@@ -154,7 +156,6 @@ def paperjs_to_coco_cliptobounds(
                     point_outside = (
                         x > image_width or x < 0 or y > image_height or y < 0
                     )
-                    # prev_point_outside = prev_point[0] > image_width or prev_point[0] < 0 or prev_point[1] > image_height or prev_point[1] < 0
                     if point_outside:  # outside canvas
                         line = LineString([[x, y], prev_point])
                         for _, edge in edges.items():

@@ -34,7 +34,7 @@ page_data.add_argument("limit", default=20, type=int)
 
 
 @api.route("/")
-class Category(Resource):
+class CategoryRoot(Resource):
 
     @login_required
     def get(self):
@@ -65,7 +65,7 @@ class Category(Resource):
                 keypoint_colors=keypoint_colors,
             )
             category.save()
-        except NotUniqueError as e:
+        except NotUniqueError:
             return {
                 "message": "Category already exists. Check the undo tab to fully delete the category."
             }, 400
@@ -74,7 +74,7 @@ class Category(Resource):
 
 
 @api.route("/<int:category_id>")
-class Category(Resource):
+class CategoryId(Resource):
 
     @login_required
     def get(self, category_id):
@@ -116,7 +116,7 @@ class Category(Resource):
         name = args.get("name")
         supercategory = args.get("supercategory", category.supercategory)
         color = args.get("color", category.color)
-        metadata = args.get("metadata", category.metadata)
+        args.get("metadata", category.metadata)
         keypoint_edges = args.get("keypoint_edges", category.keypoint_edges)
         keypoint_labels = args.get("keypoint_labels", category.keypoint_labels)
         keypoint_colors = args.get("keypoint_colors", category.keypoint_colors)

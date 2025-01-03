@@ -45,7 +45,7 @@ class TaskId(Resource):
 
 
 @api.route("/<int:task_id>/logs")
-class TaskId(Resource):
+class TaskIdLogs(Resource):
     @login_required
     def get(self, task_id):
         """Deletes task"""
