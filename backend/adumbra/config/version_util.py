@@ -98,13 +98,15 @@ class VersionControl:
         # Example command return:
         # <hash>        refs/heads/{branch}
         # so we split and get just the hash
-        latest_version = self._run_git_command(
+        latest_version_pieces = self._run_git_command(
             "ls-remote", *branch.split("/"), key="latest_version"
-        ).split()[0]
+        ).split()
+        if not latest_version_pieces:
+            return 0
         result = self._run_git_command(
             "rev-list",
             "--count",
-            f"{current_version}..{latest_version}",
+            f"{current_version}..{latest_version_pieces[0]}",
             key="commits_behind",
         )
         try:

@@ -4,12 +4,14 @@ services:
   ia:
     environment:
       - FLASK_ENV=development
-      - DEBUG=true
+      - FLASK_DEBUG=true
   webserver:
     environment:
+      # https://flask-fr.readthedocs.io/server/#command-line
       - FLASK_APP=webserver
       - FLASK_ENV=development
-      - DEBUG=true
+      # https://flask.palletsprojects.com/en/stable/config/#DEBUG
+      - FLASK_DEBUG=true
   frontend:
     build:
       target: develop

@@ -14,6 +14,7 @@ services:
       - 6000:6000
     environment:
       - FILE_WATCHER=true
+      - FLASK__SECRET_KEY=RandomSecretKeyHere
       - FLASK_APP=ia
       - DEVICE=cpu
       # Install IA aplications or not
