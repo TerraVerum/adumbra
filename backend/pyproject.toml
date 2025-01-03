@@ -29,6 +29,7 @@ dependencies = [
     "pillow",
     "pycocotools",
     "pydantic",
+    "pydantic-settings",
     "pytest",
     "requests",
     "shapely",
