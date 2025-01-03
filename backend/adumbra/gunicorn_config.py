@@ -1,7 +1,5 @@
 from adumbra.config import CONFIG
 
-
-def __getattr__(name):
-    # Allow setting config values where gunicorn expects, but manage them with
-    # pydantic settings
-    return getattr(CONFIG.gunicorn, name)
+# Allow setting config values in global scope where gunicorn expects, but keep source of
+# truth with pydantic settings
+globals().update(CONFIG.gunicorn.model_dump())

@@ -19,7 +19,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # Python dependencies
 # ----------------
 COPY ./backend/requirements-pinned.txt /tmp/requirements-pinned.txt
-RUN pip install --no-cache-dir --no-deps -r /tmp/requirements-pinned.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-deps -r /tmp/requirements-pinned.txt
 
 WORKDIR /workspace/
 # Provides `adumbra` as a package. We can also `pip install .` it if desired.
@@ -57,33 +58,35 @@ CMD ["gunicorn", "-c", "adumbra/gunicorn_config.py", "adumbra.webserver:app", "-
 # ----------------
 # IA container
 # ----------------
-FROM adumbra-python AS adumbra-ia-gpu
-RUN conda install -c nvidia -c pytorch -y \
-    pytorch torchvision pytorch-cuda=12.4 \
-    && conda clean --all --yes
+FROM adumbra-python AS adumbra-ia-cuda
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/opt/conda/pkgs \
+    conda install -c nvidia -c pytorch -y \
+    pytorch torchvision pytorch-cuda=12.4 cudnn
 
 FROM adumbra-python AS adumbra-ia-cpu
 RUN conda install -c pytorch -y \
     pytorch torchvision \
     && conda clean --all --yes
 
-
 FROM adumbra-ia-${DEVICE} AS adumbra-ia
+# ARG goes away each stage, so we need to re-define it here
+ARG DEVICE=cpu
 # ------
 # https://github.com/facebookresearch/sam2/blob/main/INSTALL.md
 # indicates we need to explicitly request they don't build a cuda extension.
 # Zim depends on SAM1, which has a similar env-configured cuda builder listening for
 # FORCE_CUDA
-RUN CUDA_AVAILABLE=$([ "$DEVICE" = "cuda" ] && echo 1 || echo 0) && \
+RUN CUDA_AVAILABLE=$([ "${DEVICE}" = "cuda" ] && echo 1 || echo 0) && \
     echo "SAM2_BUILD_CUDA=$CUDA_AVAILABLE" >> /etc/environment \
     && echo "FORCE_CUDA=$CUDA_AVAILABLE" >> /etc/environment
 
-ENV SAM2="1"
-ENV ZIM="1"
 # Reads environment variables and installs sam/zim/etc as needed with minimal
 # dependencies
 COPY ./backend/requirements-ia/ /tmp/requirements-ia/
-RUN /tmp/requirements-ia/install_requirements.py
+RUN --mount=type=cache,target=/root/.cache/pip \
+    echo "Installing requirements with device ${DEVICE}" \
+    && python /tmp/requirements-ia/install_requirements.py
 
 COPY ./models/ /models/
 EXPOSE 6000

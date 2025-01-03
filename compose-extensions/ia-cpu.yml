@@ -18,8 +18,7 @@ services:
       - FLASK_APP=ia
       - DEVICE=cpu
       # Install IA aplications or not
-      - SAM2="1"
-      - ZIM="1"
-      - SAM2_DEFAULT_MODEL_PATH=/models/sam2.1_hiera_base_plus.pt
-      - ZIM_DEFAULT_MODEL_PATH=/models/zim/
-      - ZIM_DEFAULT_MODEL_TYPE=vit_b
+      - SAM2__DEFAULT_MODEL_PATH=/models/sam2.1_hiera_base_plus.pt
+      - SAM2__DEFAULT_MODEL_CONFIG=configs/sam2.1/sam2.1_hiera_b+.yaml
+      - ZIM__DEFAULT_MODEL_PATH=/models/zim/
+      - ZIM__DEFAULT_MODEL_TYPE=vit_b

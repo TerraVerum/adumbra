@@ -89,10 +89,8 @@ class Config(BaseSettings):
     allow_registration: bool = True
 
     ### Models
-    sam2: IAModelSettings = IAModelSettings(default_model_path="/models/sam2")
-    zim: IAModelSettings = IAModelSettings(
-        default_model_path="/models/zim", default_model_type="vit_b"
-    )
+    sam2: IAModelSettings = IAModelSettings()
+    zim: IAModelSettings = IAModelSettings()
 
     ia_device: str = Field(
         default="cpu", validation_alias=AliasChoices("device", "ia_device")
