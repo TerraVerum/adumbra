@@ -10,7 +10,7 @@ aniso8601==9.0.1
     # via flask-restx
 annotated-types==0.7.0
     # via pydantic
-astroid==3.3.7
+astroid==3.3.8
     # via pylint
 attrs==24.3.0
     # via
@@ -36,7 +36,7 @@ certifi==2024.12.14
     #   selenium
 cfgv==3.4.0
     # via pre-commit
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via requests
 click==8.1.8
     # via
@@ -96,7 +96,7 @@ gunicorn==23.0.0
     # via adumbra (pyproject.toml)
 h11==0.14.0
     # via wsproto
-identify==2.6.3
+identify==2.6.4
     # via pre-commit
 idna==3.10
     # via
@@ -104,7 +104,7 @@ idna==3.10
     #   trio
 imantics @ git+https://github.com/SixK/imantics.git
     # via adumbra (pyproject.toml)
-importlib-resources==6.4.5
+importlib-resources==6.5.2
     # via flask-restx
 iniconfig==2.0.0
     # via pytest
@@ -120,7 +120,7 @@ jsonschema==4.23.0
     # via flask-restx
 jsonschema-specifications==2024.10.1
     # via jsonschema
-kiwisolver==1.4.7
+kiwisolver==1.4.8
     # via matplotlib
 kombu==5.4.2
     # via celery
@@ -169,7 +169,7 @@ pathspec==0.12.1
     # via
     #   black
     #   unimport
-pillow==11.0.0
+pillow==11.1.0
     # via
     #   adumbra (pyproject.toml)
     #   matplotlib
@@ -198,11 +198,11 @@ pydantic-core==2.27.2
     # via pydantic
 pydantic-settings==2.7.1
     # via adumbra (pyproject.toml)
-pylint==3.3.2
+pylint==3.3.3
     # via adumbra (pyproject.toml)
 pymongo==4.10.1
     # via mongoengine
-pyparsing==3.2.0
+pyparsing==3.2.1
     # via matplotlib
 pyproject-hooks==1.2.0
     # via
@@ -218,9 +218,9 @@ python-dateutil==2.9.0.post0
     #   matplotlib
 python-dotenv==1.0.1
     # via pydantic-settings
-python-engineio==4.11.1
+python-engineio==4.11.2
     # via python-socketio
-python-socketio==5.12.0
+python-socketio==5.12.1
     # via flask-socketio
 pytz==2024.2
     # via flask-restx
@@ -256,7 +256,7 @@ toml==0.10.2
     # via unimport
 tomlkit==0.13.2
     # via pylint
-trio==0.27.0
+trio==0.28.0
     # via
     #   selenium
     #   trio-websocket
@@ -286,7 +286,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-virtualenv==20.28.0
+virtualenv==20.28.1
     # via pre-commit
 watchdog==6.0.0
     # via adumbra (pyproject.toml)

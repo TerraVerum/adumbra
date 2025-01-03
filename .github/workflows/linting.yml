@@ -49,7 +49,7 @@ jobs:
 
       - name: Run Pylint (source files)
         if: always()
-        run: >
+        run: |
           pylint --rcfile ./backend/pyproject.toml \
             backend/adumbra/gunicorn_config.py \
             backend/adumbra/ia \
