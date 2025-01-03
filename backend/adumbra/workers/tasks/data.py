@@ -17,6 +17,8 @@ from adumbra.database import (
 from adumbra.workers import celery
 from adumbra.workers.socket import create_socket
 
+# TODO: Fix pylint errors to get to score 10/10, will do in a separate PR
+
 
 @celery.task
 def export_annotations(task_id, dataset_id, categories, with_empty_images=False):
