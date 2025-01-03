@@ -36,8 +36,8 @@ docker compose -f docker-compose.yml --profile ia-gpu up --build
 # Or ia-cpu profile, but not both at once
 ```
 
-#### Note
-GPU models currently only expose cuda 0, so you may need to adjust [`ia-gpu.yml`](compose-extensions/ia-gpu.yml) to match your system.
+> [!IMPORTANT]
+> GPU models currently only expose cuda 0, so you may need to adjust [`ia-gpu.yml`](compose-extensions/ia-gpu.yml) to match your system.
 
 ### Development mode
 To run the application in development mode, you can use the following command:
