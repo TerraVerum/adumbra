@@ -50,7 +50,7 @@ preview = true
 [tool.isort]
 profile = "black"
 combine_as_imports = true
-fail_under = 9
+
 
 [tool.unimport]
 ignore_init = true
@@ -85,6 +85,7 @@ generated-member = [
     "cv2.RETR_EXTERNAL",
     "cv2.CHAIN_APPROX_NONE",
 ]
+fail_under = 9
 
 [tool.pyright]
 typeCheckingMode = "basic"

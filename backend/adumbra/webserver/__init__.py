@@ -23,7 +23,6 @@ from adumbra.webserver.authentication import login_manager
 from adumbra.webserver.sockets import socketio
 from adumbra.webserver.util import thumbnails
 
-
 connect_mongo("webserver")
 
 socketio = SocketIO()
