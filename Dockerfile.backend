@@ -39,7 +39,7 @@ RUN python adumbra/config/version_util.py
 FROM build_base AS adumbra-python
 COPY --from=build_git_cache /workspace/adumbra/git_cache.json /workspace/adumbra/git_cache.json
 # Confirm git cache worked and python package is accessible
-RUN python -c 'from adumbra.config import Config; print(f"adumbra version: {Config.VERSION}")'
+RUN python -c 'from adumbra.config import CONFIG; print(f"adumbra version: {CONFIG.version}")'
 
 # ----------------
 # Celery worker container
