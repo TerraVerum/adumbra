@@ -8,10 +8,9 @@ def generate_thumbnails():
         f"{PREFIX} Sending request for regenerating images with non actual thumbnails",
         flush=True,
     )
-    _ = [
+
+    for image in ImageModel.objects(regenerate_thumbnail=True).all():
         generate_thumbnail(image)
-        for image in ImageModel.objects(regenerate_thumbnail=True).all()
-    ]
 
 
 def generate_thumbnail(image):
