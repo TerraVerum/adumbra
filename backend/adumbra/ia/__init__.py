@@ -1,6 +1,14 @@
+import eventlet
+
+eventlet.monkey_patch(thread=False)
+
+# pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-order
+# monkey patching must be done before importing the remaining modules
+# https://eventlet.readthedocs.io/en/latest/patching.html#monkeypatching-the-standard-library
+
 import logging
 
-import eventlet
 import requests
 from flask import Flask
 from flask_cors import CORS
@@ -9,8 +17,6 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from adumbra.config import CONFIG
 from adumbra.database import create_from_json
 from adumbra.ia.api import blueprint as api
-
-eventlet.monkey_patch(thread=False)
 
 
 def create_app():

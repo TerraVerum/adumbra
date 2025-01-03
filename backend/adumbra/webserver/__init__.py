@@ -1,7 +1,15 @@
+import eventlet
+
+eventlet.monkey_patch(thread=False)
+
+# pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-order
+# monkey patching must be done before importing the remaining modules
+# https://eventlet.readthedocs.io/en/latest/patching.html#monkeypatching-the-standard-library
+
 import logging
 import os
 
-import eventlet
 import requests
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
@@ -14,8 +22,6 @@ from adumbra.webserver.api import blueprint as api
 from adumbra.webserver.authentication import login_manager
 from adumbra.webserver.sockets import socketio
 from adumbra.webserver.util import thumbnails
-
-eventlet.monkey_patch(thread=False)
 
 
 connect_mongo("webserver")
