@@ -41,7 +41,7 @@ def create_app():
         static_folder="../dist",
     )
 
-    flask.config.from_object(CONFIG)
+    flask.config.from_object(CONFIG.flask)
 
     CORS(flask)
 

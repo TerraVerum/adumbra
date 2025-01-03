@@ -22,7 +22,7 @@ def create_app():
 
     flask = Flask(__name__, static_url_path="", static_folder="../dist")
 
-    flask.config.from_object(CONFIG)
+    flask.config.from_object(CONFIG.flask)
 
     CORS(flask)
 

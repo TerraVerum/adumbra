@@ -28,7 +28,7 @@ class SAM2:
         SAM2_LOADED = os.path.isfile(SAM2_MODEL_PATH)
         if SAM2_LOADED:
             self.sam2_model = build_sam2(
-                SAM2_MODEL_CONFIG,
+                SAM2_MODEL_CONFIG or None,
                 ckpt_path=SAM2_MODEL_PATH,
                 device=AnnotatorConfig.ia_device,
             )

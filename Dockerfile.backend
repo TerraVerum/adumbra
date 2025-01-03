@@ -78,8 +78,6 @@ RUN CUDA_AVAILABLE=$([ "$DEVICE" = "cuda" ] && echo 1 || echo 0) && \
     echo "SAM2_BUILD_CUDA=$CUDA_AVAILABLE" >> /etc/environment \
     && echo "FORCE_CUDA=$CUDA_AVAILABLE" >> /etc/environment
 
-ENV SAM2="1"
-ENV ZIM="1"
 # Reads environment variables and installs sam/zim/etc as needed with minimal
 # dependencies
 COPY ./backend/requirements-ia/ /tmp/requirements-ia/
