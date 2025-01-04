@@ -637,20 +637,21 @@ class DatasetCoco(Resource):
         return import_coco(dataset, json.load(coco))
 
 
-@api.route("/coco/<int:import_id>")
-class DatasetCocoId(Resource):
+# TODO: CocoImportModel is not defined, determine what to do with this api
+# @api.route("/coco/<int:import_id>")
+# class DatasetCocoId(Resource):
 
-    @login_required
-    def get(self, import_id):
-        """Returns current progress and errors of a coco import"""
-        coco_import = CocoImportModel.objects(
-            id=import_id, creator=current_user.username
-        ).first()
+#     @login_required
+#     def get(self, import_id):
+#         """Returns current progress and errors of a coco import"""
+#         coco_import = CocoImportModel.objects(
+#             id=import_id, creator=current_user.username
+#         ).first()
 
-        if not coco_import:
-            return {"message": "No such coco import"}, 400
+#         if not coco_import:
+#             return {"message": "No such coco import"}, 400
 
-        return {"progress": coco_import.progress, "errors": coco_import.errors}
+#         return {"progress": coco_import.progress, "errors": coco_import.errors}
 
 
 @api.route("/<int:dataset_id>/scan")
