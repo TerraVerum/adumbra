@@ -6,7 +6,7 @@ from flask_restx import Namespace, Resource
 
 from adumbra.config import CONFIG
 from adumbra.database import AnnotationModel, CategoryModel, ImageModel, SessionEvent
-from adumbra.webserver.util import coco_util, profile, query_util, thumbnails
+from adumbra.webserver.util import coco_util, query_util, thumbnails
 
 api = Namespace("annotator", description="Annotator related operations")
 
@@ -14,7 +14,6 @@ api = Namespace("annotator", description="Annotator related operations")
 @api.route("/data")
 class AnnotatorData(Resource):
 
-    @profile
     @login_required
     def post(self):
         """
@@ -145,7 +144,6 @@ class AnnotatorData(Resource):
 @api.route("/data/<int:image_id>")
 class AnnotatorId(Resource):
 
-    @profile
     @login_required
     def get(self, image_id):
         """Called when loading from the annotator client"""
