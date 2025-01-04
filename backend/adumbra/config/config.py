@@ -12,10 +12,17 @@ DeviceStr = t.Annotated[str, StringConstraints(min_length=3, pattern=DEVICE_REGE
 version_info = VersionControl()
 
 
-class IAModelSettings(BaseModel):
-    default_model_path: str = ""
-    default_model_type: str = ""
-    default_model_config: str = ""
+class SAM2Config(BaseModel):
+    """All params are named the same as sam2.build_sam2(...) and directly forwarded"""
+
+    ckpt_path: str | None = None
+    config_file: str | None = None
+
+
+class ZIMConfig(BaseModel):
+    """Passed directly to zim_anything.build_zim_model(...)"""
+
+    checkpoint: str = ""
 
 
 class GunicornSettings(BaseSettings):
@@ -53,8 +60,8 @@ class IASettings(BaseSettings):
     device: DeviceStr = "cpu"
 
     ### Models
-    sam2: IAModelSettings = IAModelSettings()
-    zim: IAModelSettings = IAModelSettings()
+    sam2: SAM2Config = SAM2Config()
+    zim: ZIMConfig = ZIMConfig()
 
     def is_cpu_like(self) -> bool:
         return not self.is_gpu_like()
@@ -124,4 +131,3 @@ class Config(BaseSettings):
 
 
 CONFIG = Config()
-__all__ = ["CONFIG"]
