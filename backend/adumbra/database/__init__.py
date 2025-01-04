@@ -5,13 +5,11 @@ from mongoengine import DynamicDocument, QuerySet, connect
 from mongoengine.base import BaseField
 
 from adumbra.config import CONFIG
-from adumbra.database.images import AnnotationModel
-
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.events import Event, SessionEvent
 from adumbra.database.exports import ExportModel
-from adumbra.database.images import ImageModel
+from adumbra.database.images import AnnotationModel, ImageModel
 from adumbra.database.lisence import LicenseModel
 from adumbra.database.tasks import TaskModel
 from adumbra.database.users import UserModel

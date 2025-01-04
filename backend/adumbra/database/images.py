@@ -254,6 +254,7 @@ class ImageModel(ShimmedDynamicDocument):
         self.update(**u)
 
 
+# TODO: determine how to split into own file without circular imports
 class AnnotationModel(ShimmedDynamicDocument):
 
     COCO_PROPERTIES = [
