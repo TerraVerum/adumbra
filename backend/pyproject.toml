@@ -84,14 +84,6 @@ generated-member = [
     "cv2.findContours",
     "cv2.RETR_EXTERNAL",
     "cv2.CHAIN_APPROX_NONE",
-    "DatasetModel.objects",
-    "ExportModel.objects",
-    "CategoryModel.objects",
-    "ImageModel.objects",
-    "AnnotationModel.objects",
-    "UserModel.objects",
-    "TaskModel.objects",
-    "model_instance.objects",
 ]
 fail-under = 9.5
 
