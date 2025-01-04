@@ -1,9 +1,5 @@
-import os
-
-from flask_login import current_user
 from mongoengine import fields
 
-from adumbra.config import CONFIG
 from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 

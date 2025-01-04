@@ -1,18 +1,16 @@
 import json
 import logging
 from pathlib import Path
-import os
 
 import numpy as np
 from flask_restx import Namespace, Resource, reqparse
 from PIL import Image
 from werkzeug.datastructures import FileStorage
 
-from adumbra.config import CONFIG
+from adumbra.database.ia_config import IAConfigModel
 from adumbra.ia.util.helpers import getSegmentation
 from adumbra.ia.util.sam2 import SAM2
 from adumbra.ia.util.zim import ZIM
-from adumbra.database.ia_config import IAConfigModel
 
 logger = logging.getLogger("gunicorn.error")
 
@@ -60,7 +58,7 @@ class Model(Resource):
         "parameters", type=dict, required=False, help="Additional parameters"
     )
     post_parser.add_argument(
-        "files",
+        "weights_files",
         location="files",
         type=FileStorage,
         required=True,

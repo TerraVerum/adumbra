@@ -4,7 +4,8 @@ import os
 import numpy as np
 from zim_anything import ZimPredictor, build_zim_model
 
-from adumbra.config import CONFIG, ZIMConfig
+from adumbra.config import CONFIG
+from adumbra.types import ZIMConfig
 
 logger = logging.getLogger("gunicorn.error")
 
@@ -22,7 +23,7 @@ class ZIM:
 
         logger.info(f"ZIM info: {config}, {device}")
         if not os.path.isdir(ia_settings.zim.checkpoint):
-            logger.warning(f"Disabling ZIM; checkpoint directory not found")
+            logger.warning("Disabling ZIM; checkpoint directory not found")
             return
 
         zim_model = build_zim_model(**config.model_dump()).to(device)

@@ -5,7 +5,8 @@ import numpy as np
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
 
-from adumbra.config import CONFIG, SAM2Config
+from adumbra.config import CONFIG
+from adumbra.types import SAM2Config
 
 logger = logging.getLogger("gunicorn.error")
 

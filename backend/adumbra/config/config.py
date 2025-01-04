@@ -1,28 +1,16 @@
 import re
 import typing as t
 
-from pydantic import BaseModel, StringConstraints
+from pydantic import StringConstraints
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from adumbra.config.version_util import VersionControl
+from adumbra.types import SAM2Config, ZIMConfig
 
 DEVICE_REGEX = re.compile(r"^(cpu|cuda(:\d+)?$)", flags=re.IGNORECASE)
 DeviceStr = t.Annotated[str, StringConstraints(min_length=3, pattern=DEVICE_REGEX)]
 
 version_info = VersionControl()
-
-
-class SAM2Config(BaseModel):
-    """All params are named the same as sam2.build_sam2(...) and directly forwarded"""
-
-    ckpt_path: str | None = None
-    config_file: str | None = None
-
-
-class ZIMConfig(BaseModel):
-    """Passed directly to zim_anything.build_zim_model(...)"""
-
-    checkpoint: str = ""
 
 
 class GunicornSettings(BaseSettings):
