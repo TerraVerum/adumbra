@@ -18,7 +18,7 @@ from adumbra.database import (
     ExportModel,
     ImageModel,
 )
-from adumbra.webserver.util import coco_util, profile, query_util
+from adumbra.webserver.util import coco_util, query_util
 from adumbra.webserver.util.pagination_util import Pagination
 
 api = Namespace("dataset", description="Dataset related operations")
@@ -389,7 +389,6 @@ class DatasetData(Resource):
 @api.route("/<int:dataset_id>/data")
 class DatasetDataId(Resource):
 
-    @profile
     @api.expect(page_data)
     @login_required
     def get(self, dataset_id):
