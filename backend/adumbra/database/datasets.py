@@ -35,16 +35,6 @@ class DatasetModel(ShimmedDynamicDocument):
 
         return super(DatasetModel, self).save(*args, **kwargs)
 
-    def get_users(self):
-        from adumbra.database.users import UserModel
-
-        members = self.users
-        members.append(self.owner)
-
-        return UserModel.objects(username__in=members).exclude(
-            "password", "id", "preferences"
-        )
-
     def is_owner(self, user):
 
         if user.is_admin:

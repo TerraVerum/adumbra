@@ -18,6 +18,7 @@ from adumbra.database import (
     ExportModel,
     ImageModel,
 )
+from adumbra.database.users import get_dataset_users
 from adumbra.webserver.util import coco_util, query_util
 from adumbra.webserver.util.pagination_util import Pagination
 from adumbra.workers.tasks.helpers.utils import export_coco, import_coco, scan
@@ -176,7 +177,7 @@ class DatasetMembers(Resource):
         if dataset is None:
             return {"message": "Invalid dataset id"}, 400
 
-        users = dataset.get_users()
+        users = get_dataset_users(dataset)
         return query_util.fix_ids(users)
 
 
@@ -220,7 +221,7 @@ class DatasetStats(Resource):
 
         user_stats = {}
 
-        for user in dataset.get_users():
+        for user in get_dataset_users(dataset):
             user_annots = AnnotationModel.objects(
                 dataset_id=dataset_id, deleted=False, creator=user.username
             )
@@ -252,7 +253,7 @@ class DatasetStats(Resource):
 
         stats = {
             "total": {
-                "Users": dataset.get_users().count(),
+                "Users": get_dataset_users(dataset).count(),
                 "Images": images.count(),
                 "Annotated Images": annotated_images.count(),
                 "Annotations": annotations.count(),

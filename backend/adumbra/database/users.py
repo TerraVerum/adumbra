@@ -94,4 +94,14 @@ class UserModel(ShimmedDynamicDocument, UserMixin):
         self.update(last_seen=datetime.datetime.utcnow())
 
 
+def get_dataset_users(dataset):
+
+    members = dataset.users
+    members.append(dataset.owner)
+
+    return UserModel.objects(username__in=members).exclude(
+        "password", "id", "preferences"
+    )
+
+
 __all__ = ["UserModel"]
