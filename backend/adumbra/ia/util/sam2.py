@@ -5,13 +5,9 @@ import numpy as np
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
 
-from adumbra.config import CONFIG as AnnotatorConfig
+from adumbra.config import CONFIG
 
 logger = logging.getLogger("gunicorn.error")
-
-MODEL_DIR = "/workspace/models"
-SAM2_MODEL_PATH = AnnotatorConfig.sam2.default_model_path
-SAM2_MODEL_CONFIG = AnnotatorConfig.sam2.default_model_config
 
 
 class SAM2:
@@ -22,18 +18,18 @@ class SAM2:
     predictor: SAM2ImagePredictor | None = None
 
     def __init__(self):
-        logger.info(
-            f"zz info: {SAM2_MODEL_CONFIG}, {SAM2_MODEL_PATH}, {AnnotatorConfig.ia_device}"
-        )
-        SAM2_LOADED = os.path.isfile(SAM2_MODEL_PATH)
+        ia_settings = CONFIG.ia
+        config = ia_settings.sam2.default_model_config
+        model_path = ia_settings.sam2.default_model_path
+        device = ia_settings.get_best_device()
+        logger.info(f"SAM2 info: {config}, {model_path}, {device}")
+        SAM2_LOADED = os.path.isfile(model_path)
         if SAM2_LOADED:
             self.sam2_model = build_sam2(
-                SAM2_MODEL_CONFIG or None,
-                ckpt_path=SAM2_MODEL_PATH,
-                device=AnnotatorConfig.ia_device,
+                config or None, ckpt_path=model_path, device=device
             )
             self.is_loaded = True
-            logger.info("SAM2 model is loaded.")
+            logger.info(f"SAM2 model is loaded on device. {device}")
         else:
             logger.warning("SAM2 model is disabled.")
 

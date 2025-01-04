@@ -1,0 +1,15 @@
+# ------------------------------
+# ZIM
+# ------------------------------
+# "if" and --no-deps syntax only supported in the `install_requirements` parsing script
+zim_anything  # --no-deps
+easydict
+setuptools
+onnx
+onnxruntime-gpu  # --if="build_env.is_gpu_like()"
+onnxruntime  # --if="build_env.is_cpu_like()"
+
+# ------------------------------
+# SAM2
+# ------------------------------
+sam-2@git+https://github.com/facebookresearch/sam2@2b90b9f5ceec907a1c18123530e92e794ad901a4

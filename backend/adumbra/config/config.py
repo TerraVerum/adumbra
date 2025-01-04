@@ -1,9 +1,13 @@
+import re
 import typing as t
 
-from pydantic import AliasChoices, BaseModel, Field, StringConstraints
+from pydantic import BaseModel, StringConstraints
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from adumbra.config.version_util import VersionControl
+
+DEVICE_REGEX = re.compile(r"^(cpu|cuda(:\d+)?$)", flags=re.IGNORECASE)
+DeviceStr = t.Annotated[str, StringConstraints(min_length=3, pattern=DEVICE_REGEX)]
 
 version_info = VersionControl()
 
@@ -43,6 +47,34 @@ class FlaskSettings(BaseSettings):
 class CelerySettings(BaseSettings):
     broker_url: str = "amqp://user:password@messageq:5672//"
     result_backend: str = "mongodb://database/flask"
+
+
+class IASettings(BaseSettings):
+    device: DeviceStr = "cpu"
+
+    ### Models
+    sam2: IAModelSettings = IAModelSettings()
+    zim: IAModelSettings = IAModelSettings()
+
+    def is_cpu_like(self) -> bool:
+        return not self.is_gpu_like()
+
+    def is_gpu_like(self) -> bool:
+        """Handles strings like cuda, CUDA, cuda:0, etc."""
+        return self.device.lower().startswith("cuda")
+
+    def get_best_device(self) -> str:
+        if self.device.lower() == "cpu":
+            # Check for MPS if available
+            try:
+                import torch
+
+                if torch.mps.is_available():
+                    return "mps"
+            except ImportError:
+                # Torch not installed, fallback to cpu
+                return self.device
+        return self.device
 
 
 class Config(BaseSettings):
@@ -88,13 +120,7 @@ class Config(BaseSettings):
     login_disabled: bool = False
     allow_registration: bool = True
 
-    ### Models
-    sam2: IAModelSettings = IAModelSettings()
-    zim: IAModelSettings = IAModelSettings()
-
-    ia_device: str = Field(
-        default="cpu", validation_alias=AliasChoices("device", "ia_device")
-    )
+    ia: IASettings = IASettings()
 
 
 CONFIG = Config()
