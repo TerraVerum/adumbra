@@ -2,9 +2,9 @@ import logging
 import os
 
 import numpy as np
-from zim_anything import ZimPredictor, zim_model_registry
+from zim_anything import ZimPredictor, build_zim_model
 
-from adumbra.config import CONFIG
+from adumbra.config import CONFIG, ZIMConfig
 
 logger = logging.getLogger("gunicorn.error")
 
@@ -15,21 +15,20 @@ class ZIM:
     scores: np.ndarray | None = None
     logits: np.ndarray | None = None
 
-    def __init__(self):
+    def __init__(self, config: ZIMConfig | None = None):
         ia_settings = CONFIG.ia
-        model_path = ia_settings.zim.default_model_path
-        model_type = ia_settings.zim.default_model_type
+        config = config or ia_settings.zim
         device = ia_settings.get_best_device()
 
-        logger.info(f"ZIM info: {model_type}, {model_path}, {device}")
-        ZIM_LOADED = os.path.isdir(model_path)
-        if ZIM_LOADED:
-            zim_model = zim_model_registry[model_type](checkpoint=model_path).to(device)
-            self.predictor = ZimPredictor(zim_model)
-            self.is_loaded = True
-            logger.info(f"ZIM model is loaded on device {device}.")
-        else:
-            logger.warning("ZIM model is disabled.")
+        logger.info(f"ZIM info: {config}, {device}")
+        if not os.path.isdir(ia_settings.zim.checkpoint):
+            logger.warning(f"Disabling ZIM; checkpoint directory not found")
+            return
+
+        zim_model = build_zim_model(**config.model_dump()).to(device)
+        self.predictor = ZimPredictor(zim_model)
+        self.is_loaded = True
+        logger.info(f"ZIM model is loaded on device {device}.")
 
     def setImage(self, image):
         self.predictor.set_image(np.array(image, copy=True))
@@ -41,6 +40,3 @@ class ZIM:
             multimask_output=True,
         )
         self.masks = (self.masks * 255).astype(np.uint8)
-
-
-model = ZIM()
