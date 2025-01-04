@@ -5,7 +5,8 @@ from mongoengine import DynamicDocument, QuerySet, connect
 from mongoengine.base import BaseField
 
 from adumbra.config import CONFIG
-from adumbra.database.annotations import AnnotationModel
+from adumbra.database.images import AnnotationModel
+
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.events import Event, SessionEvent

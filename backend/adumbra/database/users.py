@@ -3,7 +3,8 @@ import datetime
 from flask_login import UserMixin
 from mongoengine import Q, fields
 
-from adumbra.database.annotations import AnnotationModel
+from adumbra.database.images import AnnotationModel
+
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.images import ImageModel
