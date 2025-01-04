@@ -7,7 +7,7 @@ from flask_restx import Namespace, Resource, reqparse
 from PIL import Image
 from werkzeug.datastructures import FileStorage
 
-from adumbra.database.ia_config import IAConfigModel
+from adumbra.database.assistant import AssistantModel
 from adumbra.ia.util.helpers import getSegmentation
 from adumbra.ia.util.sam2 import SAM2
 from adumbra.ia.util.zim import ZIM
@@ -58,12 +58,11 @@ class Model(Resource):
         "parameters", type=dict, required=False, help="Additional parameters"
     )
     post_parser.add_argument(
-        "weights_files",
-        location="files",
+        "assets",
+        location="assets",
         type=FileStorage,
         required=True,
-        action="append",
-        help="Files to upload",
+        help=".zip file of all assets referred to in parameters",
     )
 
     @api.expect(get_parser)
@@ -73,7 +72,7 @@ class Model(Resource):
         for key in "name", "model_type":
             if val := args.get(key):
                 kwargs[key] = val
-        matches = IAConfigModel.objects(**kwargs)
+        matches = AssistantModel.objects(**kwargs)
         return json.loads(matches.to_json()), 200
 
     @api.expect(post_parser)
@@ -90,7 +89,7 @@ class Model(Resource):
             file: FileStorage
             file.save(save_path / file.filename)
 
-        new_model = IAConfigModel(
+        new_model = AssistantModel(
             name=name, model_type=model_type, parameters=parameters
         )
         new_model.save()
