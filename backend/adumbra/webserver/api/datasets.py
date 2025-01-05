@@ -18,8 +18,10 @@ from adumbra.database import (
     ExportModel,
     ImageModel,
 )
+from adumbra.database.users import get_dataset_users
 from adumbra.webserver.util import coco_util, query_util
 from adumbra.webserver.util.pagination_util import Pagination
+from adumbra.workers.tasks.helpers.utils import export_coco, import_coco, scan
 
 api = Namespace("dataset", description="Dataset related operations")
 
@@ -175,7 +177,7 @@ class DatasetMembers(Resource):
         if dataset is None:
             return {"message": "Invalid dataset id"}, 400
 
-        users = dataset.get_users()
+        users = get_dataset_users(dataset)
         return query_util.fix_ids(users)
 
 
@@ -219,7 +221,7 @@ class DatasetStats(Resource):
 
         user_stats = {}
 
-        for user in dataset.get_users():
+        for user in get_dataset_users(dataset):
             user_annots = AnnotationModel.objects(
                 dataset_id=dataset_id, deleted=False, creator=user.username
             )
@@ -251,7 +253,7 @@ class DatasetStats(Resource):
 
         stats = {
             "total": {
-                "Users": dataset.get_users().count(),
+                "Users": get_dataset_users(dataset).count(),
                 "Images": images.count(),
                 "Annotated Images": annotated_images.count(),
                 "Annotations": annotations.count(),
@@ -585,8 +587,8 @@ class DatasetExport(Resource):
         if not dataset:
             return {"message": "Invalid dataset ID"}, 400
 
-        return dataset.export_coco(
-            categories=categories, with_empty_images=with_empty_images
+        return export_coco(
+            dataset, categories=categories, with_empty_images=with_empty_images
         )
 
     @api.expect(coco_upload)
@@ -600,7 +602,7 @@ class DatasetExport(Resource):
         if dataset is None:
             return {"message": "Invalid dataset ID"}, 400
 
-        return dataset.import_coco(json.load(coco))
+        return import_coco(dataset, json.load(coco))
 
 
 @api.route("/<int:dataset_id>/coco")
@@ -632,23 +634,24 @@ class DatasetCoco(Resource):
         if dataset is None:
             return {"message": "Invalid dataset ID"}, 400
 
-        return dataset.import_coco(json.load(coco))
+        return import_coco(dataset, json.load(coco))
 
 
-@api.route("/coco/<int:import_id>")
-class DatasetCocoId(Resource):
+# TODO: CocoImportModel is not defined, determine what to do with this api
+# @api.route("/coco/<int:import_id>")
+# class DatasetCocoId(Resource):
 
-    @login_required
-    def get(self, import_id):
-        """Returns current progress and errors of a coco import"""
-        coco_import = CocoImportModel.objects(
-            id=import_id, creator=current_user.username
-        ).first()
+#     @login_required
+#     def get(self, import_id):
+#         """Returns current progress and errors of a coco import"""
+#         coco_import = CocoImportModel.objects(
+#             id=import_id, creator=current_user.username
+#         ).first()
 
-        if not coco_import:
-            return {"message": "No such coco import"}, 400
+#         if not coco_import:
+#             return {"message": "No such coco import"}, 400
 
-        return {"progress": coco_import.progress, "errors": coco_import.errors}
+#         return {"progress": coco_import.progress, "errors": coco_import.errors}
 
 
 @api.route("/<int:dataset_id>/scan")
@@ -662,4 +665,4 @@ class DatasetScan(Resource):
         if not dataset:
             return {"message": "Invalid dataset ID"}, 400
 
-        return dataset.scan()
+        return scan(dataset)
