@@ -2,8 +2,10 @@ import json
 
 import pytest
 
-from adumbra.database.users import UserModel
-from adumbra.webserver import app
+# This must be imported before the database models
+from adumbra.webserver import app  # isort:skip
+
+from adumbra.database.users import UserModel  # isort:skip
 
 
 @pytest.fixture
