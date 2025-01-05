@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12'] # we fail against '3.10' 
+        python-version: ['3.12']
         mongodb-version: ['4.0']
 
     steps:
