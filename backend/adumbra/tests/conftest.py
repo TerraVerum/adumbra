@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from adumbra.webserver import app
 from adumbra.database.users import UserModel
+from adumbra.webserver import app
 
 
 @pytest.fixture

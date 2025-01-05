@@ -4,7 +4,6 @@ import pytest
 
 from adumbra.database import CategoryModel
 
-
 test_category_data = [
     {"name": "test1"},
     {
