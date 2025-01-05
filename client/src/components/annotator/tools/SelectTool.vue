@@ -83,14 +83,12 @@ watch(
 watch(
   () => scale.value, 
   (newScale) => {
-      console.log('scaling');
       hover.value.rounded = newScale * 5;
       hover.value.textShift = newScale * 40;
       hover.value.fontSize = newScale * scaleFactor;
       edit.value.distance = newScale * 40;
       edit.value.indicatorSize = newScale * 10;
       edit.value.indicatorWidth = newScale * 2;
-      console.log('scale:', edit.value.center, point);
       if (edit.value.center && point.value != null) {
         createPoint(edit.value.center);
       }
@@ -331,7 +329,6 @@ function createPoint(currpoint) {
 
 const onMouseDrag = (event) => {
   if (isBbox.value && moveObject.value) {
-    console.log('isBbox and moveObject');
     let delta_x = initPoint.value.x - event.point.x;
     let delta_y = initPoint.value.y - event.point.y;
     let segments = moveObject.value.children[0].segments;

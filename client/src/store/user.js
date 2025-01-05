@@ -97,7 +97,7 @@ export const useAuthStore = defineStore('auth', () => {
         return true;
       } catch (err) {
         setError(err);
-        console.log('error:', err);
+        console.error('error:', err);
         if (errorCallback != null) errorCallback(err);
         return false;
       }

@@ -9,7 +9,7 @@ export default {
         model: modelName,
       },
     }).catch(function (error) {
-        console.log("Error in getModelWeights", error.toJSON());
+        console.error("Error in getModelWeights", error.toJSON());
         return {
             default: "Default",
           };
