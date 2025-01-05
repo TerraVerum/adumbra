@@ -1,22 +1,18 @@
-import json
-
-import pytest
-
 from adumbra.database import UserModel
 
 
-@pytest.mark.second
 class TestUser:
 
     @classmethod
     def setup_class(cls):
         UserModel.objects.delete()
 
-    def test_create_first_user(self, client):
-        response = client.post(
-            "/api/user/register", json={"username": "user", "password": "pass"}
-        )
-        data = json.loads(response.data)
+    @classmethod
+    def teardown_class(cls):
+        UserModel.objects.delete()
+
+    def test_create_first_user(self, register_user):
+        data = register_user
         assert data.get("success")
 
         user = data.get("user")

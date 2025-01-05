@@ -1,0 +1,43 @@
+name: Tests
+on:
+  pull_request:
+    # TODO look up what all the different types mean
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+      - labeled
+
+jobs:
+  tests:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12']
+        mongodb-version: ['4.0']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.11.0
+        with:
+            mongodb-version: ${{ matrix.mongodb-version }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          cache-dependency-path: backend/requirements-dev-pinned.txt
+
+      - name: Install project dependencies
+        working-directory: backend
+        run: pip install -r requirements-dev-pinned.txt
+
+      - name: Run tests
+        env:
+          MONGODB_HOST: "mongodb://localhost:27017/test"
+        run: pytest
