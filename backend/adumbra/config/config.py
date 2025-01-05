@@ -67,7 +67,7 @@ class IASettings(BaseSettings):
         if self.device.lower() == "cpu":
             # Check for MPS if available
             try:
-                import torch
+                import torch  # pylint: disable=import-outside-toplevel
 
                 if torch.mps.is_available():
                     return "mps"
