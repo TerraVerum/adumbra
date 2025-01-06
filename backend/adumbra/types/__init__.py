@@ -15,4 +15,10 @@ class ZIMConfig(BaseModel):
     """Passed directly to zim_anything.build_zim_model(...)"""
 
     assistant_type: t.Literal["zim"] = "zim"
-    checkpoint: str = ""
+    checkpoint: str | None = None
+
+
+class SegmentationResponse(t.TypedDict):
+    disabled: bool
+    segmentation: list[list[int]]
+    message: t.NotRequired[str]

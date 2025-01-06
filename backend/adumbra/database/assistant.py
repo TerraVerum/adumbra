@@ -3,7 +3,7 @@ from mongoengine import fields
 from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 
-class AssistantModel(ShimmedDynamicDocument):
+class AssistantDBModel(ShimmedDynamicDocument):
 
     id = fields.SequenceField(primary_key=True)
     name = fields.StringField(required=True, unique=True)
@@ -11,4 +11,4 @@ class AssistantModel(ShimmedDynamicDocument):
     parameters = fields.DictField(required=True)
 
 
-__all__ = ["AssistantModel"]
+__all__ = ["AssistantDBModel"]
