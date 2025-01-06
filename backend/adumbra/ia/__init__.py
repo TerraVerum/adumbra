@@ -1,7 +1,3 @@
-import eventlet
-
-eventlet.monkey_patch(thread=False)
-
 # pylint: disable=wrong-import-position
 # pylint: disable=wrong-import-order
 # monkey patching must be done before importing the remaining modules
@@ -9,51 +5,31 @@ eventlet.monkey_patch(thread=False)
 
 import logging
 
-import requests
-from flask import Flask
-from flask_cors import CORS
-from werkzeug.middleware.proxy_fix import ProxyFix
+from fastapi.middleware.cors import CORSMiddleware
 
 from adumbra.config import CONFIG
 from adumbra.database import create_from_json
-from adumbra.ia.api import blueprint as api
+from adumbra.ia.api import app
 
+gunicorn_logger = logging.getLogger("gunicorn.error")
+fastapi_logger = logging.getLogger("fastapi")
+fastapi_logger.handlers = gunicorn_logger.handlers
+fastapi_logger.setLevel(gunicorn_logger.level)
 
-def create_app():
+origins = [
+    "http://ia:6000",
+    "http://webserver:8080",
+    "http://localhost:8080",
+    "http://localhost:6000",
+]
 
-    # Dunno why observer.start() does not return
-    # We disable it and see later if this is fixable
-    # if Config.FILE_WATCHER:
-    #   run_watcher()
-
-    flask = Flask(__name__, static_url_path="", static_folder="../dist")
-
-    flask.config.from_object(CONFIG.flask)
-
-    CORS(flask)
-
-    flask.wsgi_app = ProxyFix(flask.wsgi_app)
-    flask.register_blueprint(api)
-
-    return flask
-
-
-app = create_app()
-
-logger = logging.getLogger("gunicorn.error")
-app.logger.handlers = logger.handlers
-app.logger.setLevel(logger.level)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if CONFIG.initialize_from_file:
     create_from_json(CONFIG.initialize_from_file)
-
-
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
-def index(path):
-
-    if app.debug:
-        return requests.get(f"http://frontend:8080/{path}", timeout=5).text
-
-    return app.send_static_file("index.html")

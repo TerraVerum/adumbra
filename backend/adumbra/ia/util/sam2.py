@@ -23,7 +23,9 @@ class SAM2:
             logger.warning("SAM2 model is disabled.")
             return
 
-        self.sam2_model = build_sam2(**config.model_dump(), device=device)
+        self.sam2_model = build_sam2(
+            **config.model_dump(exclude={"assistant_type"}), device=device
+        )
         self.config = config
         self.is_loaded = True
         logger.info(f"SAM2 model is loaded on device {device}.")
@@ -48,6 +50,8 @@ class SAM2:
         np.ndarray
             Segmented mask of the image in CxHxW format.
         """
+        # Avoid a helper function for a single call to sam vs zim predictor duplication.
+        # pylint: disable=duplicate-code
         predictor = SAM2ImagePredictor(self.sam2_model, **kwargs)
         predictor.set_image(np.array(image, copy=True))
         masks, *_unused = predictor.predict(

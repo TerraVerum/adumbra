@@ -10,7 +10,7 @@ from typing_extensions import ParamSpec
 
 from adumbra.ia.util.sam2 import SAM2
 from adumbra.ia.util.zim import ZIM
-from adumbra.types import SAM2Config, SegmentationResponse, ZIMConfig
+from adumbra.types.assistants import SAM2Config, SegmentationResult, ZIMConfig
 
 BaseModel_co = t.TypeVar("BaseModel_co", bound=BaseModel, covariant=True)
 logger = logging.getLogger("gunicorn.error")
@@ -63,6 +63,8 @@ class cache_with_key(t.Generic[P, R]):
 
 
 # Can't use functools.lru_cache since BaseModel is not hashable
+# Keep the explicit lambda since `key=tuple` would be more confusing
+# pylint: disable-next=unnecessary-lambda
 @cache_with_key[[BaseModel], SegmenterProtocol](key=lambda config: tuple(config))
 def config_to_segmenter(config: BaseModel) -> SegmenterProtocol:
     """
@@ -76,25 +78,25 @@ def config_to_segmenter(config: BaseModel) -> SegmenterProtocol:
 
 def run_segmentation(
     config: BaseModel,
-    image_stream: t.BinaryIO,
-    foreground_xy: list,
+    image: t.BinaryIO | str,
+    foreground_xy: list[list[float]],
     **kwargs,
-) -> SegmentationResponse:
+) -> SegmentationResult:
     segmenter = config_to_segmenter(config)
     if not segmenter.is_loaded:
-        return SegmentationResponse(
+        return SegmentationResult(
             disabled=True,
             segmentation=[],
             message=f"{segmenter.__class__.__name__} is disabled",
         )
-    img = Image.open(image_stream).convert("RGB")
+    img = Image.open(image).convert("RGB")
     img = np.asarray(img)
     masks = segmenter.end_to_end_segmentation(
         img, foreground_xy=np.array(foreground_xy), **kwargs
     )
     if masks is None:
         logger.warning(f"{segmenter} No masks found")
-        return SegmentationResponse(disabled=False, segmentation=[])
+        return SegmentationResult(disabled=False, segmentation=[])
     # Assume only bg/fg channels, so grab mask associated with fg
     mask = masks[1]
     contours, _ = cv2.findContours(
@@ -103,4 +105,4 @@ def run_segmentation(
     # Convert the contour to the format required for segmentation in COCO format
     flattened = [contour.flatten().tolist() for contour in contours]
 
-    return SegmentationResponse(disabled=False, segmentation=flattened)
+    return SegmentationResult(disabled=False, segmentation=flattened)

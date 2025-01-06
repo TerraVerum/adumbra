@@ -27,7 +27,9 @@ class ZIM:
             logger.warning("Disabling ZIM; checkpoint directory not found")
             return
 
-        self.zim_model = build_zim_model(**config.model_dump()).to(device)
+        self.zim_model = build_zim_model(
+            **config.model_dump(exclude={"assistant_type"})
+        ).to(device)
         self.config = config
         self.is_loaded = True
         logger.info(f"ZIM model is loaded on device {device}.")
