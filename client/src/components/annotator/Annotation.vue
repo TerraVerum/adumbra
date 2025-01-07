@@ -452,7 +452,6 @@ const deleteAnnotation = (id) => {
 };
 
 const deleteAnnot = (id) => {
-  console.log('deleting id:', id);
   // we delete annotation on category component to avoid index desynchro between category.annotations and 
   // category.value.annotations.splice(id, 1);
   if (compoundPath.value != null) compoundPath.value.remove();
@@ -851,12 +850,10 @@ const keypointListView = computed(() => {
 });
 
 const isHover = computed(() => {
-  console.log('isHover:', index, hover, index.value, hover.value);
   return index.value === hover.value;
 });
 
 const backgroundColor = computed(() => {
-      // console.log('change Background color');
       if (isHover.value && isHoverCategory.value) return "#646c82";
       if (isCurrent.value) return "#4b624c";
       return "inherit";
@@ -942,14 +939,12 @@ watch(
 watch(
     () => color.value, 
     () => {
-    console.log('watch color.value');
     setColor();
 });
 
 watch(
     () => isVisible.value, 
     (newVisible) => {
-    console.log('isVisible:', newVisible, compoundPath.value.visible);
     if (compoundPath.value == null) return;
     compoundPath.value.visible = newVisible;
     keypoints.value.visible = newVisible;
@@ -958,9 +953,7 @@ watch(
 watch(
     () => compoundPath.value, 
     () => {
-    console.log('compoundPath changed...');
     if (compoundPath.value == null) return;
-    console.log('watch keypoints:', compoundPath.value.isEmpty(), keypoints.value.isEmpty());
     compoundPath.value.visible = isVisible.value;
     setColor();
     isEmpty.value = compoundPath.value.isEmpty() && keypoints.value.isEmpty();
@@ -976,7 +969,6 @@ watch(
 watch(
     annotation.value, 
     () => {
-    console.log('watch annotation value');
     initAnnotation();
 });
 
@@ -1070,7 +1062,6 @@ onMounted( () => {
     // app.__vue_app__._instance.ctx.sockets.subscribe('annotation', onAnnotation);
     getCurrentInstance().ctx.sockets.subscribe('annotation', onAnnotation);
 
-    console.log('should be mounted Annotation');
 });
 
 onUnmounted(() => {

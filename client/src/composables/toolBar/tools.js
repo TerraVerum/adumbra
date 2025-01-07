@@ -31,10 +31,8 @@ const onMouseUp = () => {};
 
 
 watchEffect(() => {
-    console.log('active tool:',getActiveTool(), name.value);
     if (name.value !== getActiveTool()) {
         state.isActive = false;
-        console.log('disabled all 2');
     }else{
         if(!state.isDisabled){
            setCursor(cursor.value);
@@ -65,7 +63,6 @@ watch(
 );
 
 watchEffect(() => {
-      console.log('lol:', current.annotation);
       state.isDisabled = current.annotation === -1;
       if(state.isDisabled) {
           state.isActive = false;
@@ -91,13 +88,11 @@ const update = () => {
     setActiveTool(name.value);
     state.isActive = true;
     state.isDisabled = false;
-    console.log('active in tool', state.isActive, name.value);
 };
 const setPreferences = () => {};
 
 
 const iconColor = computed(() => {
-    console.log('change color:', state.isDisabled, state.isActive);
     if (state.isDisabled) return color.disabled
     // next line disabled isToggled seem's defined nowhere
     // if (props.isToggled) return props.color.toggle;

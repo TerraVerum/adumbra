@@ -533,7 +533,6 @@ const tab = ref("images");
 const order = ref("file_name");
 
 function onTab(newTab) {
-  console.log("tab:", newTab);
   tab.value = newTab;
 }
 
@@ -573,7 +572,6 @@ const updatePage = (page = undefined) => {
   let process = "Loading images from dataset";
   procStore.addProcess(process);
 
-  console.log("queryannotated:", queryAnnotated);
   Dataset.getData(dataset.value.id, {
     page: page,
     limit: limit.value,
@@ -635,7 +633,6 @@ const getStats = () => {
 
 const createScanTask = () => {
   let process = "Loading images from dataset";
-  console.log("scanning...");
   if (scan.value.id != null) {
     router.push({ path: "/tasks", query: { id: scan.value.id } });
     return;
@@ -654,7 +651,6 @@ const createScanTask = () => {
 };
 
 const exportModal = () => {
-  console.log("exportModal invoked...:", exporting);
   if (exporting.value.id !== null) {
     router.push({ path: "/tasks", query: { id: exporting.value.id } });
     return;
@@ -695,7 +691,6 @@ const clearFolders = () => {
 };
 
 const importModal = () => {
-  console.log("importing:", runningCocoImport);
   if (runningCocoImport.value.id != null) {
     router.push({ path: "/tasks", query: { id: runningCocoImport.value.id } });
     return;
@@ -815,7 +810,6 @@ const onAnnotating = (data) => {
 watch(
   () => tab.value,
   (newtab) => {
-    console.log("tab changed...:", newtab);
     localStorage.setItem("dataset/tab", newtab);
     if (newtab === "members") getUsers();
     if (newtab === "statistics") getStats();
@@ -839,7 +833,6 @@ watch(
 watch(
   () => selected.value.categories,
   (val) => {
-    console.log("selected categories :", val);
     updatePage();
   },
   { deep: true }
@@ -913,7 +906,6 @@ onBeforeRouteUpdate((to, from, next) => {
 });
 
 onMounted(() => {
-  console.log("Mounted datasets");
   window.addEventListener("mouseup", stopDrag);
   window.addEventListener("mousedown", startDrag);
 

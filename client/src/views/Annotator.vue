@@ -827,12 +827,10 @@ const getImageRaster = () => {
 };
 
 const getCurrentCategory = () => {
-    console.log('getCurrentCategory called');
   return currentCategoryFromList.value;
 };
 
 const getCurrentAnnotation = () => {
-        console.log('getCurrentAnnotation called');
         return currentAnnotationFromList.value;
 };
 
@@ -854,13 +852,11 @@ const currentCategory = computed(() => {
 
 const currentAnnotationFromList = computed(() => {
   // recursive call in production mode
-  console.log('annotator compute currentAnnotationFromList:', currentCategoryFromList.value);
 
   if (currentCategoryFromList.value == null) {
     return null;
   }
 
-  console.log(' compute current annotationList annotation2:', currentCategoryFromList.value.getAnnotationFromIndex(current.value.annotation));
   return currentCategoryFromList.value.getAnnotationFromIndex(current.value.annotation);
 });
 
@@ -1027,7 +1023,6 @@ const moveDown = () => {
 };
 
 const stepIn = () => {
-  console.log('stepIn ...');
 
   if (currentCategoryFromList.value == null) return;
 
@@ -1223,13 +1218,11 @@ const doneLoading = computed(() => {
 });
 
 const currentAnnotationLength = computed(() => {
-    console.log('currentAnnotationLength computed');
   if (currentCategoryFromList.value == null) return null;
   return currentCategoryFromList.value.category.annotations.length;
 });
 
 const currentKeypointLength = computed(() => {
-   console.log('currentKeypointLength computed');
 
   if (currentAnnotationFromList.value == null) return null;
   return currentAnnotationFromList.value.annotation.keypoints.length;
@@ -1363,7 +1356,6 @@ onMounted(() => {
     initCanvas();
     getData();
 
-    console.log('socket:', socket, getCurrentInstance());
     // const instance = getCurrentInstance();
     // socket.io.emit("annotating", {image_id: image.value.id, active: true });
     socket.emit("annotating", {image_id: image.value.id, active: true });

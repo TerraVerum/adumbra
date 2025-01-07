@@ -265,7 +265,6 @@ const registerUser = () => {
     errorCallback: (error) =>
       axiosReqestError("User Registration", error.response.data.message)
   };
-  console.log('zzzzzzzzz - try to register...');
   authStore.register(data);
 };
 
