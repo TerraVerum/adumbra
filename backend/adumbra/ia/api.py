@@ -26,6 +26,7 @@ AsForm = t.Annotated[Model_T, Form(media_type="multipart/form-data")]
 
 logger = logging.getLogger("gunicorn.error")
 connect_mongo("ia")
+AssistantDBModel.ensure_defaults_available()
 
 # Initialize FastAPI application
 app = FastAPI(
