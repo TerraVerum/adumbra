@@ -19,8 +19,7 @@ class Pagination:
         self.start = (current_page - 1) * self.limit
         self.end = self.start + self.limit
 
-        if self.length < self.end:
-            self.end = self.length
+        self.end = min(self.end, self.length)
 
     def export(self):
         return {

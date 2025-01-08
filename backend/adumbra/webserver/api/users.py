@@ -51,7 +51,6 @@ class UserPassword(Resource):
         args = set_password.parse_args()
 
         if check_password_hash(current_user.password, args.get("password")):
-            # current_user.update(password=generate_password_hash(args.get('new_password'), method='sha256'), new=False)
             current_user.update(
                 password=generate_password_hash(
                     args.get("new_password"), method="pbkdf2:sha256"

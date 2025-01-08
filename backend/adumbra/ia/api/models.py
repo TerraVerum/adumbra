@@ -20,12 +20,6 @@ image_upload.add_argument(
     "image", location="files", type=FileStorage, required=True, help="Image"
 )
 
-sam_args = reqparse.RequestParser()
-sam_args.add_argument("data", type=str, required=True)
-sam_args.add_argument(
-    "image", location="files", type=FileStorage, required=True, help="Image"
-)
-
 sam2_args = reqparse.RequestParser()
 sam2_args.add_argument("data", type=str, required=True)
 sam2_args.add_argument(

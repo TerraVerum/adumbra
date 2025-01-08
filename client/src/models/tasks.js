@@ -12,7 +12,7 @@ export default {
         const response = await axios.delete(baseURL + id);
         return response.data;
     } catch(error) {
-        console.log('axios delete error:', error);
+        console.error('axios delete error:', error);
         throw error;
     }
   },

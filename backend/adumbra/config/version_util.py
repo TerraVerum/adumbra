@@ -57,7 +57,7 @@ def git_or_cached(
     if git_exists and (refresh_cache or cache_key not in cache):
         result = subprocess.run(command, stdout=subprocess.PIPE, text=True, check=False)
         cache[cache_key] = result.stdout.strip()
-        cache_file.write_text(json.dumps(cache, indent=2))
+        cache_file.write_text(json.dumps(cache, indent=2), encoding="utf-8")
     return cache.get(cache_key, "")
 
 

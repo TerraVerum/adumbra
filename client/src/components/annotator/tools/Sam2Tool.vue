@@ -119,7 +119,6 @@ function checkPoints(newPoints) {
                 }
             })
           .then((response) => {
-            console.log('response:', response.data);
             let compoundPath = createPath(response.data.segmentation, width, height);
             currentAnnotation.unite(compoundPath);
           })

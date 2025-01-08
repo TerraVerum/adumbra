@@ -6,7 +6,7 @@ from flask_restx import Namespace, Resource
 
 from adumbra.config import CONFIG
 from adumbra.database import AnnotationModel, CategoryModel, ImageModel, SessionEvent
-from adumbra.webserver.util import coco_util, profile, query_util, thumbnails
+from adumbra.webserver.util import coco_util, query_util, thumbnails
 
 api = Namespace("annotator", description="Annotator related operations")
 
@@ -14,7 +14,6 @@ api = Namespace("annotator", description="Annotator related operations")
 @api.route("/data")
 class AnnotatorData(Resource):
 
-    @profile
     @login_required
     def post(self):
         """
@@ -42,7 +41,6 @@ class AnnotatorData(Resource):
 
         current_user.update(preferences=data.get("user", {}))
 
-        annotated = False
         num_annotations = 0
         # Iterate every category passed in the data
         for category in data.get("categories", []):
@@ -146,7 +144,6 @@ class AnnotatorData(Resource):
 @api.route("/data/<int:image_id>")
 class AnnotatorId(Resource):
 
-    @profile
     @login_required
     def get(self, image_id):
         """Called when loading from the annotator client"""
@@ -192,7 +189,8 @@ class AnnotatorId(Resource):
         data["image"]["previous"] = pre.id if pre else None
         data["image"]["next"] = nex.id if nex else None
 
-        # Optimize query: query all annotation of specific image, and then categorize them according to the categories.
+        # Optimize query: query all annotation of specific image,
+        # and then categorize them according to the categories.
         all_annotations = (
             AnnotationModel.objects(image_id=image_id, deleted=False)
             .exclude("events")

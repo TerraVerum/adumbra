@@ -1,7 +1,0 @@
-# "if" syntax is only supported in the `install_requirements` parsing script
-zim_anything  # --no-deps
-easydict
-setuptools
-onnx
-onnxruntime-gpu  # --if="os.getenv('DEVICE', 'cpu') == 'cuda'"
-onnxruntime  # --if="os.getenv('DEVICE', 'cpu') == 'cpu'"

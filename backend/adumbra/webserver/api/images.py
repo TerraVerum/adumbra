@@ -84,7 +84,8 @@ class Images(Resource):
         dataset_id = args["dataset_id"]
         try:
             dataset = DatasetModel.objects.get(id=dataset_id)
-        except:
+        # TODO: investigate specific exceptions to catch
+        except Exception:  # pylint: disable=broad-except
             return {"message": "dataset does not exist"}, 400
         directory = dataset.directory
         path = os.path.join(directory, image.filename)
@@ -114,7 +115,6 @@ class ImageSegmentedId(Resource):
         """Returns category by ID"""
         args = image_download.parse_args()
         as_attachment = args.get("asAttachment")
-        thumbnail = args.get("thumbnail")
 
         image = current_user.images.filter(id=image_id, deleted=False).first()
 
@@ -177,13 +177,11 @@ class ImageId(Resource):
             pil_image = Image.open(image.path)
 
         pil_image.thumbnail((width, height), Image.Resampling.LANCZOS)
-        # pil_image.thumbnail((width, height), Image.ANTIALIAS)
         image_io = io.BytesIO()
         pil_image = pil_image.convert("RGB")
         pil_image.save(image_io, "JPEG", quality=90)
         image_io.seek(0)
 
-        # return send_file(image_io, attachment_filename=image.file_name, as_attachment=as_attachment)
         return send_file(
             image_io, download_name=image.file_name, as_attachment=as_attachment
         )

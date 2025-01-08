@@ -27,7 +27,7 @@ models = [
 
 
 @api.route("/list/")
-class Undo(Resource):
+class UndoList(Resource):
 
     @api.expect(model_list)
     @login_required
@@ -40,7 +40,7 @@ class Undo(Resource):
         data = []
 
         for model in models:
-            if model_type == "all" or model_type == model[1]:
+            if model_type in ("all", model[1]):
                 data.extend(model_undo(model[0], model[1], limit=n))
 
         data.sort(key=lambda item: item["date"], reverse=True)
@@ -55,7 +55,7 @@ class Undo(Resource):
 
 
 @api.route("/")
-class Undo(Resource):
+class UndoRoot(Resource):
 
     @api.expect(model_data)
     @login_required
@@ -117,10 +117,12 @@ class Undo(Resource):
 
 
 def model_undo(model_instance, instance_name, limit=50):
-    models = model_instance.objects(deleted=True).order_by("-deleted_date").limit(limit)
+    db_models = (
+        model_instance.objects(deleted=True).order_by("-deleted_date").limit(limit)
+    )
     new_models = []
 
-    for model in models:
+    for model in db_models:
 
         if model.deleted_date is None:
             continue
@@ -158,7 +160,7 @@ def td_format(td_object):
         if seconds > period_seconds:
             period_value, seconds = divmod(seconds, period_seconds)
             has_s = "s" if period_value > 1 else ""
-            strings.append("%s %s%s" % (period_value, period_name, has_s))
+            strings.append(f"{period_value} {period_name}{has_s}")
             break
 
     return ", ".join(strings)

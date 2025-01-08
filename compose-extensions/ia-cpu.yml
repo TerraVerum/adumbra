@@ -16,9 +16,8 @@ services:
       - FILE_WATCHER=true
       - FLASK__SECRET_KEY=RandomSecretKeyHere
       - FLASK_APP=ia
-      - DEVICE=cpu
       # Install IA aplications or not
-      - SAM2__DEFAULT_MODEL_PATH=/models/sam2.1_hiera_base_plus.pt
-      - SAM2__DEFAULT_MODEL_CONFIG=configs/sam2.1/sam2.1_hiera_b+.yaml
-      - ZIM__DEFAULT_MODEL_PATH=/models/zim/
-      - ZIM__DEFAULT_MODEL_TYPE=vit_b
+      - IA__SAM2__DEFAULT_MODEL_PATH=/models/sam2.1_hiera_base_plus.pt
+      - IA__SAM2__DEFAULT_MODEL_CONFIG=configs/sam2.1/sam2.1_hiera_b+.yaml
+      - IA__ZIM__DEFAULT_MODEL_PATH=/models/zim/
+      - IA__ZIM__DEFAULT_MODEL_TYPE=vit_b

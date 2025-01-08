@@ -368,7 +368,6 @@ const resetCategorySettings = () => {
 };
 
 const onUpdateClick = () => {
-  console.log("onUpdateClick:", keypoint.value.labels, keypoint.value.edges, keypoint.value.colors);
   category.value.keypoint_labels = [...keypoint.value.labels];
   category.value.keypoint_edges = [...keypoint.value.edges];
   category.value.keypoint_colors = [...keypoint.value.colors];
@@ -610,7 +609,6 @@ onMounted( () => {
      getCurrentInstance().ctx.sockets.subscribe('annotation', onAnnotation);
      isMounted.value = true;
     let categoryTag = document.getElementById(`categorySettings${category.value.id}`);
-    console.log('CategoryTag:', categoryTag);
     categorySettingsModal = new Modal(categoryTag, { });
 });
 

@@ -65,21 +65,14 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pytorch torchvision pytorch-cuda=12.4 cudnn
 
 FROM adumbra-python AS adumbra-ia-cpu
-RUN conda install -c pytorch -y \
-    pytorch torchvision \
-    && conda clean --all --yes
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/opt/conda/pkgs \
+    conda install -c pytorch -y pytorch torchvision
 
 FROM adumbra-ia-${DEVICE} AS adumbra-ia
 # ARG goes away each stage, so we need to re-define it here
 ARG DEVICE=cpu
-# ------
-# https://github.com/facebookresearch/sam2/blob/main/INSTALL.md
-# indicates we need to explicitly request they don't build a cuda extension.
-# Zim depends on SAM1, which has a similar env-configured cuda builder listening for
-# FORCE_CUDA
-RUN CUDA_AVAILABLE=$([ "${DEVICE}" = "cuda" ] && echo 1 || echo 0) && \
-    echo "SAM2_BUILD_CUDA=$CUDA_AVAILABLE" >> /etc/environment \
-    && echo "FORCE_CUDA=$CUDA_AVAILABLE" >> /etc/environment
+ENV DEVICE=${DEVICE}
 
 # Reads environment variables and installs sam/zim/etc as needed with minimal
 # dependencies

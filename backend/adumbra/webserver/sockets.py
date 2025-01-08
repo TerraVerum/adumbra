@@ -20,8 +20,8 @@ def authenticated_only(f):
     def wrapped(*args, **kwargs):
         if current_user.is_authenticated or CONFIG.login_disabled:
             return f(*args, **kwargs)
-        else:
-            disconnect()
+
+        return disconnect()
 
     return wrapped
 
@@ -104,7 +104,7 @@ def connect():
 
 
 @socketio.on("disconnect")
-def disconnect():
+def on_disconnect():
     if current_user.is_authenticated:
         logger.info(
             f"Socket connection has been disconnected with {current_user.username}"

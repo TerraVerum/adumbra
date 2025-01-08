@@ -3,10 +3,9 @@ import datetime
 from flask_login import UserMixin
 from mongoengine import Q, fields
 
-from adumbra.database.annotations import AnnotationModel
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
-from adumbra.database.images import ImageModel
+from adumbra.database.images import AnnotationModel, ImageModel
 from adumbra.database.mongo_shim import ShimmedDynamicDocument
 
 
@@ -93,6 +92,16 @@ class UserModel(ShimmedDynamicDocument, UserMixin):
 
     def _update_last_seen(self):
         self.update(last_seen=datetime.datetime.utcnow())
+
+
+def get_dataset_users(dataset):
+
+    members = dataset.users
+    members.append(dataset.owner)
+
+    return UserModel.objects(username__in=members).exclude(
+        "password", "id", "preferences"
+    )
 
 
 __all__ = ["UserModel"]

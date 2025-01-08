@@ -18,8 +18,10 @@ from adumbra.database import (
     ExportModel,
     ImageModel,
 )
-from adumbra.webserver.util import coco_util, profile, query_util
+from adumbra.database.users import get_dataset_users
+from adumbra.webserver.util import coco_util, query_util
 from adumbra.webserver.util.pagination_util import Pagination
+from adumbra.workers.tasks.helpers.utils import export_coco, import_coco, scan
 
 api = Namespace("dataset", description="Dataset related operations")
 
@@ -170,13 +172,12 @@ class DatasetMembers(Resource):
     @login_required
     def get(self, dataset_id):
         """All users in the dataset"""
-        args = dataset_generate.parse_args()
 
         dataset = current_user.datasets.filter(id=dataset_id, deleted=False).first()
         if dataset is None:
             return {"message": "Invalid dataset id"}, 400
 
-        users = dataset.get_users()
+        users = get_dataset_users(dataset)
         return query_util.fix_ids(users)
 
 
@@ -186,7 +187,6 @@ class DatasetCleanMeta(Resource):
     @login_required
     def get(self, dataset_id):
         """All users in the dataset"""
-        args = dataset_generate.parse_args()
 
         dataset = current_user.datasets.filter(id=dataset_id, deleted=False).first()
         if dataset is None:
@@ -206,7 +206,6 @@ class DatasetStats(Resource):
     @login_required
     def get(self, dataset_id):
         """All users in the dataset"""
-        args = dataset_generate.parse_args()
 
         dataset = current_user.datasets.filter(id=dataset_id, deleted=False).first()
         if dataset is None:
@@ -217,16 +216,16 @@ class DatasetStats(Resource):
         annotations = AnnotationModel.objects(dataset_id=dataset_id, deleted=False)
 
         # Calculate annotation counts by category in this dataset
-        category_count = dict()
-        image_category_count = dict()
+        category_count = {}
+        image_category_count = {}
 
-        user_stats = dict()
+        user_stats = {}
 
-        for user in dataset.get_users():
+        for user in get_dataset_users(dataset):
             user_annots = AnnotationModel.objects(
                 dataset_id=dataset_id, deleted=False, creator=user.username
             )
-            image_count = dict()
+            image_count = {}
             for annot in user_annots:
                 image_count[annot.image_id] = image_count.get(annot.image_id, 0) + 1
 
@@ -254,7 +253,7 @@ class DatasetStats(Resource):
 
         stats = {
             "total": {
-                "Users": dataset.get_users().count(),
+                "Users": get_dataset_users(dataset).count(),
                 "Images": images.count(),
                 "Annotated Images": annotated_images.count(),
                 "Annotations": annotations.count(),
@@ -304,7 +303,6 @@ class DatasetId(Resource):
         args = update_dataset.parse_args()
         categories = args.get("categories")
         default_annotation_metadata = args.get("default_annotation_metadata")
-        set_default_annotation_metadata = args.get("set_default_annotation_metadata")
 
         if categories is not None:
             dataset.categories = CategoryModel.bulk_create(categories)
@@ -393,7 +391,6 @@ class DatasetData(Resource):
 @api.route("/<int:dataset_id>/data")
 class DatasetDataId(Resource):
 
-    @profile
     @api.expect(page_data)
     @login_required
     def get(self, dataset_id):
@@ -497,6 +494,8 @@ class DatasetDataId(Resource):
 
         images = images.skip(page * per_page).limit(per_page)
         images_json = query_util.fix_ids(images)
+
+        # TODO: investigate additional metadata for image json response
         # for image in images:
         #     image_json = query_util.fix_ids(image)
 
@@ -547,19 +546,19 @@ class DatasetExports(Resource):
                 "message": "You do not have permission to download the dataset's annotations"
             }, 403
 
-        exports = (
+        db_exports = (
             ExportModel.objects(dataset_id=dataset.id).order_by("-created_at").limit(50)
         )
 
         dict_export = []
-        for export in exports:
+        for db_export in db_exports:
 
-            time_delta = datetime.datetime.utcnow() - export.created_at
+            time_delta = datetime.datetime.utcnow() - db_export.created_at
             dict_export.append(
                 {
-                    "id": export.id,
+                    "id": db_export.id,
                     "ago": query_util.td_format(time_delta),
-                    "tags": export.tags,
+                    "tags": db_export.tags,
                 }
             )
 
@@ -588,8 +587,8 @@ class DatasetExport(Resource):
         if not dataset:
             return {"message": "Invalid dataset ID"}, 400
 
-        return dataset.export_coco(
-            categories=categories, with_empty_images=with_empty_images
+        return export_coco(
+            dataset, categories=categories, with_empty_images=with_empty_images
         )
 
     @api.expect(coco_upload)
@@ -603,7 +602,7 @@ class DatasetExport(Resource):
         if dataset is None:
             return {"message": "Invalid dataset ID"}, 400
 
-        return dataset.import_coco(json.load(coco))
+        return import_coco(dataset, json.load(coco))
 
 
 @api.route("/<int:dataset_id>/coco")
@@ -635,23 +634,24 @@ class DatasetCoco(Resource):
         if dataset is None:
             return {"message": "Invalid dataset ID"}, 400
 
-        return dataset.import_coco(json.load(coco))
+        return import_coco(dataset, json.load(coco))
 
 
-@api.route("/coco/<int:import_id>")
-class DatasetCocoId(Resource):
+# TODO: CocoImportModel is not defined, determine what to do with this api
+# @api.route("/coco/<int:import_id>")
+# class DatasetCocoId(Resource):
 
-    @login_required
-    def get(self, import_id):
-        """Returns current progress and errors of a coco import"""
-        coco_import = CocoImportModel.objects(
-            id=import_id, creator=current_user.username
-        ).first()
+#     @login_required
+#     def get(self, import_id):
+#         """Returns current progress and errors of a coco import"""
+#         coco_import = CocoImportModel.objects(
+#             id=import_id, creator=current_user.username
+#         ).first()
 
-        if not coco_import:
-            return {"message": "No such coco import"}, 400
+#         if not coco_import:
+#             return {"message": "No such coco import"}, 400
 
-        return {"progress": coco_import.progress, "errors": coco_import.errors}
+#         return {"progress": coco_import.progress, "errors": coco_import.errors}
 
 
 @api.route("/<int:dataset_id>/scan")
@@ -665,4 +665,4 @@ class DatasetScan(Resource):
         if not dataset:
             return {"message": "Invalid dataset ID"}, 400
 
-        return dataset.scan()
+        return scan(dataset)

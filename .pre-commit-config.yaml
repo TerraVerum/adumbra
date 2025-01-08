@@ -18,7 +18,7 @@ repos:
         entry: black
         language: system
         types: [python]
-        args: [--check, --config-root=backend/pyproject.toml]
+        args: [--check, --config=backend/pyproject.toml]
       - id: unimport
         name: unimport
         entry: unimport
