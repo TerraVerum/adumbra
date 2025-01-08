@@ -1,7 +1,8 @@
+import json
 import typing as t
 
 from fastapi import UploadFile
-from pydantic import BaseModel, ConfigDict, Json
+from pydantic import BaseModel, ConfigDict, Json, field_validator
 
 from adumbra.types.assistants import SAM2Parameters, ZIMParameters
 
@@ -55,8 +56,33 @@ class BaseSegmentationRequest(BaseModel):
     image: UploadFile
     """Image to be segmented"""
 
-    foreground_xy: Json[list]
+    foreground_xy: list[list[int | float]]
     """List of (x, y) points to consider as foreground"""
+
+    @field_validator("foreground_xy", mode="before")
+    @classmethod
+    def validate_foreground_xy(cls, v):
+        """
+        Some weird issues occur when parsing FormData with Pydantic, with no clear
+        answer on why. Possibly related to
+        https://github.com/fastapi/fastapi/discussions/8480. If a type is declared as a
+        list, "scalar" values are arbitrarily wrapped to become a list of one element.
+        But since FormData can only send scalars, it becomes [the_value], which pydantic
+        fails to parse. This validator "undoes" invalid Pydantic default behavior by
+        extracting the scalar value from the list, also allowing parsing of str-format
+        objects from the frontend.
+        """
+        if not isinstance(v, list) or len(v) == 0:
+            return v  # Let Pydantic handle this
+        if isinstance(v[0], list):
+            return v  # Already in the correct format
+        # Expect to only handle one nested element
+        if len(v) > 1:
+            raise ValueError("Only one nested element is expected")
+        val = v[0]
+        if isinstance(val, str):
+            return json.loads(val)
+        raise ValueError(f"No special handling for {val} of type {type(val)}")
 
 
 class ZimSegmentationRequest(BaseSegmentationRequest):
