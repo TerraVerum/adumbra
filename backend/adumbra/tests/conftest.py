@@ -1,3 +1,5 @@
+# Redefining the name is by definition how fixtures work
+# pylint: disable=redefined-outer-name
 import json
 
 import pytest
