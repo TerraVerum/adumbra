@@ -11,11 +11,11 @@ from werkzeug.datastructures import FileStorage
 
 from adumbra.database import AnnotationModel, DatasetModel, ImageModel
 from adumbra.services.thumbnail import open_thumbnail
-from adumbra.webserver.controllers.images import (
+from adumbra.webserver.util import coco_util, query_util
+from adumbra.webserver.util.images import (
     copy_image_annotations,
     generate_segmented_image,
 )
-from adumbra.webserver.util import coco_util, query_util
 
 api = Namespace("image", description="Image related operations")
 
