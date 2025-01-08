@@ -9,26 +9,26 @@
       @update="sam2.settings.threshold = $event"
     />
     <PanelInputNumber
-      v-model:value="sam2.settings.maxhole"
+      v-model:value="sam2.settings.max_hole"
       name="Max Hole Area"
       min="0"
       max="100"
       step="0.1"
-      @update="sam2.settings.maxhole = $event"
+      @update="sam2.settings.max_hole = $event"
     />
     <PanelInputNumber
-      v-model:value="sam2.settings.maxsprinkle"
+      v-model:value="sam2.settings.max_sprinkle"
       name="Max Sprinkle Area"
       min="0"
       max="100"
       step="0.1"
-      @update="sam2.settings.maxsprinkle = $event"
+      @update="sam2.settings.max_sprinkle = $event"
     />
     <PanelInputDropdown
-      v-model:value="sam2.settings.weightsFile"
-      name="Model File"
-      :values="weightsFiles"
-      @update="sam2.settings.weightsFile = $event"
+      v-model:value="sam2.settings.assistantName"
+      name="Assistant Name"
+      :values="sam2Assistants"
+      @update="sam2.settings.assistantName = $event"
     />
   </div>
 </template>
@@ -45,16 +45,16 @@ const showme = ref("false");
 const getActiveTool = inject("getActiveTool");
 
 // If we don't set a default value, the dropdown will not create correctly
-const weightsFiles = ref({ default: "default" });
+const sam2Assistants = ref(["sam2"]);
 
 watchEffect(() => {
   showme.value = sam2.value.name === getActiveTool();
 });
 
 onMounted(async () => {
-  const modelWeights = await assistantsRequests.getAssistants({
+  const response = await assistantsRequests.getAssistants({
     modelName: "sam2",
   });
-  weightsFiles.value = modelWeights;
+  sam2Assistants.value = response.data.map((assistant) => assistant.name);
 });
 </script>

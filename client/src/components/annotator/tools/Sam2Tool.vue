@@ -30,9 +30,9 @@ const icon = ref("fa-crosshairs");
 
 const settings = ref({
   threshold: 0,
-  maxhole: 0,
-  maxsprinkle: 0,
-  weightsFile: "default",
+  max_hole: 0,
+  max_sprinkle: 0,
+  assistantName: "sam2",
 });
 
 let paperPoint = null;
