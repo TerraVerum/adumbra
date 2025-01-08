@@ -4,7 +4,7 @@ import typing as t
 import zipfile
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, Form
+from fastapi import APIRouter, FastAPI, Form, Query
 from pydantic import BaseModel
 
 from adumbra.database import connect_mongo
@@ -22,6 +22,7 @@ from adumbra.types.requests import (
 
 Model_T = t.TypeVar("Model_T", bound=BaseModel)
 AsForm = t.Annotated[Model_T, Form(media_type="multipart/form-data")]
+AsQuery = t.Annotated[Model_T, Query(media_type="multipart/form-data")]
 
 
 logger = logging.getLogger("gunicorn.error")
@@ -39,12 +40,13 @@ router = APIRouter(prefix="/api", tags=["assistants"])
 
 
 @router.get("/")
-async def get_assistants(request: GetAssistantsRequest | None = None):
+async def get_assistants(request: AsQuery[GetAssistantsRequest]):
     """
     Get all models that match the given criteria.
     """
     if request is None:
         request = GetAssistantsRequest()
+    print(f"{request=}")
     kwargs = {}
     if request.assistant_name:
         kwargs["name"] = request.assistant_name
