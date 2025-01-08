@@ -2,9 +2,9 @@
 
 services:
   ia:
-    environment:
-      - FLASK_ENV=development
-      - FLASK_DEBUG=true
+    command: ["fastapi", "dev", "adumbra/ia", "--reload", "--host", "0.0.0.0", "--port", "6000"]
+    volumes:
+      - ${PWD}/backend/adumbra:/workspace/adumbra
   webserver:
     environment:
       # https://flask-fr.readthedocs.io/server/#command-line
@@ -18,6 +18,9 @@ services:
     volumes:
       # Enable hot reloading for frontend development
       - "${PWD}/client:/workspace/client"
+      # But don't let locally installed node modules interfere with the container
+      # (credit: https://stackoverflow.com/a/37898591)
+      - "/workspace/client/node_modules/"
       # Override named mounts to track added models/data
       - "${PWD}/datasets:/datasets"
       - "${PWD}/models:/models"
