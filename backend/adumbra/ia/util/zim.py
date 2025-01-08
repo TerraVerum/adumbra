@@ -2,9 +2,11 @@ import logging
 import os
 
 import numpy as np
-from zim_anything import ZimPredictor, zim_model_registry
+from zim_anything import ZimPredictor, build_zim_model
 
 from adumbra.config import CONFIG
+from adumbra.ia.util import update_none_values
+from adumbra.types import ZIMConfig
 
 logger = logging.getLogger("gunicorn.error")
 
@@ -15,32 +17,51 @@ class ZIM:
     scores: np.ndarray | None = None
     logits: np.ndarray | None = None
 
-    def __init__(self):
+    def __init__(self, *, config: ZIMConfig | None = None):
         ia_settings = CONFIG.ia
-        model_path = ia_settings.zim.default_model_path
-        model_type = ia_settings.zim.default_model_type
+        config = update_none_values(config or ZIMConfig(), ia_settings.zim)
         device = ia_settings.get_best_device()
 
-        logger.info(f"ZIM info: {model_type}, {model_path}, {device}")
-        ZIM_LOADED = os.path.isdir(model_path)
-        if ZIM_LOADED:
-            zim_model = zim_model_registry[model_type](checkpoint=model_path).to(device)
-            self.predictor = ZimPredictor(zim_model)
-            self.is_loaded = True
-            logger.info(f"ZIM model is loaded on device {device}.")
-        else:
-            logger.warning("ZIM model is disabled.")
+        logger.info(f"ZIM info: {config}, {device}")
+        if config.checkpoint is None or not os.path.isdir(config.checkpoint):
+            logger.warning("Disabling ZIM; checkpoint directory not found")
+            return
 
-    def setImage(self, image):
-        self.predictor.set_image(np.array(image, copy=True))
+        self.zim_model = build_zim_model(
+            **config.model_dump(exclude={"assistant_type"})
+        ).to(device)
+        self.config = config
+        self.is_loaded = True
+        logger.info(f"ZIM model is loaded on device {device}.")
 
-    def calcMasks(self, input_points, input_label):
-        self.masks, self.scores, self.logits = self.predictor.predict(
-            point_coords=input_points,
-            point_labels=input_label,
+    def end_to_end_segmentation(
+        self, image: np.ndarray, foreground_xy: np.ndarray, **kwargs
+    ) -> np.ndarray:
+        """
+        Perform end-to-end segmentation with SAM2 model.
+
+        Parameters
+        ----------
+        image
+            HxWx3 Image to be segmented, expected in RGB format.
+        foreground_xy
+            Points known to be in object foreground.
+        kwargs
+            Unused.
+
+        Returns
+        -------
+        np.ndarray
+            Segmented mask of the image in CxHxW format.
+        """
+        del kwargs
+        predictor = ZimPredictor(self.zim_model)
+        predictor.set_image(image)
+
+        masks, *_unused = predictor.predict(
+            point_coords=foreground_xy,
+            point_labels=np.ones(foreground_xy.shape[0], dtype=np.uint8),
             multimask_output=True,
         )
-        self.masks = (self.masks * 255).astype(np.uint8)
-
-
-model = ZIM()
+        del _unused
+        return (masks * 255).astype(np.uint8)

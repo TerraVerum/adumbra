@@ -9,6 +9,7 @@ eventlet.monkey_patch(thread=False)
 
 import logging
 import os
+import typing as t
 
 import requests
 from flask import Flask, jsonify, request, send_file
@@ -86,34 +87,37 @@ def data(filepath):
 @app.route("/", defaults={"path": ""})
 def index(path):
     if app.debug:
-        return requests.get(f"http://frontend:8080/{path}", timeout=30).text
-
+        try:
+            return requests.get(f"http://frontend:8080/{path}", timeout=2).text
+        except requests.exceptions.RequestException:
+            # May not work if the frontend is not ready
+            pass
     return app.send_static_file("index.html")
 
 
 # proxy to call AI services
-@app.route("/api/model/<path:path>", methods=["GET", "POST", "PUT"])
+@app.route("/api/assistants/<path:path>", methods=["GET", "POST", "PUT"])
 def proxy_request(path):
     json_data = None
     form_data = None
     image = None
 
     print("try to proxy", flush=True)
-    target_proxy = os.getenv("TARGET_PROXY", "http://annotator_ia:6000")
+    target_proxy = os.getenv("TARGET_PROXY", "http://annotator_ia:6001")
 
     # Prepare the URL for the target server using the extracted host, port, and path
-    target_url = f"{target_proxy}/api/model/{path}"
+    target_url = f"{target_proxy}/api/{path}"
 
     print("proxy target url:", target_url, request.method, flush=True)
 
-    content_type = request.headers.get("Content-Type")
+    content_type = request.headers.get("Content-Type") or ""
     if content_type == "application/json":
         # Handle JSON request
         json_data = request.get_json()
     elif content_type.startswith("multipart/form-data"):
         # Handle form data request
         form_data = request.form.get("data")
-        image = request.files.get("image")
+        image = t.cast(t.IO | None, request.files.get("image"))
 
     # Forward the request to the target server
     if request.method == "GET":

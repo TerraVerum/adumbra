@@ -1,18 +1,18 @@
 import axios from "axios";
 
-const baseURL = "/api/model/";
+const baseURL = "/api/assistants/";
 
 export default {
-  getModelWeights({modelName}) {
-    return axios.get(baseURL + 'weights', {
-      params: {
-        model: modelName,
-      },
-    }).catch(function (error) {
-        console.error("Error in getModelWeights", error.toJSON());
-        return {
-            default: "Default",
-          };
+  getAssistants({ modelName }) {
+    return axios
+      .get(baseURL, {
+        params: {
+          assistant_type: modelName,
+        },
+      })
+      .catch(function (error) {
+        // We exppect this to never happen
+        console.error("Error in getAssistants", error.toJSON());
       });
   },
 };

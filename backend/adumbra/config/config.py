@@ -1,21 +1,16 @@
 import re
 import typing as t
 
-from pydantic import BaseModel, StringConstraints
+from pydantic import StringConstraints
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from adumbra.config.version_util import VersionControl
+from adumbra.types import SAM2Config, ZIMConfig
 
 DEVICE_REGEX = re.compile(r"^(cpu|cuda(:\d+)?$)", flags=re.IGNORECASE)
 DeviceStr = t.Annotated[str, StringConstraints(min_length=3, pattern=DEVICE_REGEX)]
 
 version_info = VersionControl()
-
-
-class IAModelSettings(BaseModel):
-    default_model_path: str = ""
-    default_model_type: str = ""
-    default_model_config: str = ""
 
 
 class GunicornSettings(BaseSettings):
@@ -53,8 +48,8 @@ class IASettings(BaseSettings):
     device: DeviceStr = "cpu"
 
     ### Models
-    sam2: IAModelSettings = IAModelSettings()
-    zim: IAModelSettings = IAModelSettings()
+    sam2: SAM2Config = SAM2Config()
+    zim: ZIMConfig = ZIMConfig()
 
     def is_cpu_like(self) -> bool:
         return not self.is_gpu_like()
@@ -124,4 +119,3 @@ class Config(BaseSettings):
 
 
 CONFIG = Config()
-__all__ = ["CONFIG"]

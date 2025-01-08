@@ -1,4 +1,9 @@
 # ------------------------------
+# All services need fastapi
+# ------------------------------
+fastapi[standard]
+
+# ------------------------------
 # ZIM
 # ------------------------------
 # "if" and --no-deps syntax only supported in the `install_requirements` parsing script
