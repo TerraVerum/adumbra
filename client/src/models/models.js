@@ -11,10 +11,8 @@ export default {
         },
       })
       .catch(function (error) {
+        // We exppect this to never happen
         console.error("Error in getAssistants", error.toJSON());
-        return {
-          default: "Default",
-        };
       });
   },
 };

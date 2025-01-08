@@ -45,7 +45,7 @@ const showme = ref("false");
 const getActiveTool = inject("getActiveTool");
 
 // If we don't set a default value, the dropdown will not create correctly
-const sam2Assistants = ref(["sam2"]);
+const sam2Assistants = ref({"sam2": "sam2"});
 
 watchEffect(() => {
   showme.value = sam2.value.name === getActiveTool();
@@ -55,6 +55,9 @@ onMounted(async () => {
   const response = await assistantsRequests.getAssistants({
     modelName: "sam2",
   });
-  sam2Assistants.value = response.data.map((assistant) => assistant.name);
+  sam2Assistants.value = response.data.reduce( (acc, assistant) => { 
+    acc[assistant.name] = assistant.name
+    return acc
+  }, {});
 });
 </script>
