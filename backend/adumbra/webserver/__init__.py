@@ -87,8 +87,11 @@ def data(filepath):
 @app.route("/", defaults={"path": ""})
 def index(path):
     if app.debug:
-        return requests.get(f"http://frontend:8080/{path}", timeout=30).text
-
+        try:
+            return requests.get(f"http://frontend:8080/{path}", timeout=2).text
+        except requests.exceptions.RequestException:
+            # May not work if the frontend is not ready
+            pass
     return app.send_static_file("index.html")
 
 
