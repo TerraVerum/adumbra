@@ -85,7 +85,7 @@ generated-member = [
     "cv2.RETR_EXTERNAL",
     "cv2.CHAIN_APPROX_NONE",
 ]
-fail-under = 9.75
+fail-under = 9.8
 
 [tool.pyright]
 typeCheckingMode = "basic"
