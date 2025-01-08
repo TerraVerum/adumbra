@@ -12,6 +12,7 @@ MAX_THUMBNAIL_DIM = (1024, 1024)
 
 # TODO: add typing when TER-83 is completed
 
+
 def get_thumbnail_path(image_path):
     """
     Return thumbnail path based on image path
