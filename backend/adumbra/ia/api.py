@@ -22,7 +22,7 @@ from adumbra.types.requests import (
 
 Model_T = t.TypeVar("Model_T", bound=BaseModel)
 AsForm = t.Annotated[Model_T, Form(media_type="multipart/form-data")]
-AsQuery = t.Annotated[Model_T, Query(media_type="multipart/form-data")]
+AsQuery = t.Annotated[Model_T, Query()]
 
 
 logger = logging.getLogger("gunicorn.error")
