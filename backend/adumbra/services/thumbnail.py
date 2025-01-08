@@ -10,6 +10,7 @@ THUMBNAIL_DIRECTORY = ".thumbnail"
 # Set maximum thumbnail size (h x w) to use on dataset page
 MAX_THUMBNAIL_DIM = (1024, 1024)
 
+# TODO: add typing when TER-83 is completed
 
 def get_thumbnail_path(image_path):
     """
