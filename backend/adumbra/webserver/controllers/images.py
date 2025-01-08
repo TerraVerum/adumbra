@@ -1,5 +1,5 @@
 from adumbra.database.images import AnnotationModel
-from adumbra.services.thumbnail_service import create_thumbnail
+from adumbra.services.thumbnail import create_thumbnail
 
 
 def generate_segmented_image(image):

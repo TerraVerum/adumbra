@@ -1,6 +1,6 @@
 from adumbra.database import ImageModel
 from adumbra.database.images import AnnotationModel
-from adumbra.services.thumbnail_service import save_thumbnail
+from adumbra.services.thumbnail import save_thumbnail
 from adumbra.workers import celery
 
 

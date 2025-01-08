@@ -6,7 +6,6 @@ from watchdog.observers import Observer
 from adumbra.config import CONFIG
 from adumbra.constants import SUPPORTED_IMAGE_EXTENTIONS
 from adumbra.database import DatasetModel, ImageModel
-from adumbra.database.helpers.images import create_from_path
 from adumbra.webserver.util.thumbnails import generate_thumbnail
 
 
@@ -49,7 +48,7 @@ class ImageFolderHandler(FileSystemEventHandler):
 
             dataset = DatasetModel.objects(name=dataset_name).first()
 
-            image = create_from_path(path, dataset.id).save()
+            image = ImageModel.create_from_path(path, dataset.id).save()
             generate_thumbnail(image)
 
         elif event.event_type == "moved":

@@ -1,4 +1,5 @@
 import json
+import os
 import typing as t
 
 import cv2
@@ -6,12 +7,15 @@ import imantics as im
 import numpy as np
 from flask_login import current_user
 from mongoengine import fields
+from PIL import Image, ImageFile
 
 from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.events import Event, SessionEvent
 from adumbra.database.mongo_shim import ShimmedDynamicDocument
-from adumbra.services.thumbnail_service import delete_thumbnail
+from adumbra.services.thumbnail import delete_thumbnail
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class ImageModel(ShimmedDynamicDocument):
@@ -55,6 +59,25 @@ class ImageModel(ShimmedDynamicDocument):
         delete_thumbnail(self.path)
         AnnotationModel.objects(image_id=self.id).delete()
         return super(ImageModel, self).delete(*args, **kwargs)
+
+    @classmethod
+    def create_from_path(cls, path, dataset_id):
+        if not dataset_id:
+            raise ValueError("Dataset ID is required")
+
+        pil_image = Image.open(path)
+
+        image = cls()
+        image.file_name = os.path.basename(path)
+        image.path = path
+        image.width = pil_image.size[0]
+        image.height = pil_image.size[1]
+        image.regenerate_thumbnail = True
+        image.dataset_id = dataset_id
+
+        pil_image.close()
+
+        return image
 
     @property
     def dataset(self):

@@ -10,8 +10,7 @@ from PIL import Image
 from werkzeug.datastructures import FileStorage
 
 from adumbra.database import AnnotationModel, DatasetModel, ImageModel
-from adumbra.database.helpers.images import create_from_path
-from adumbra.services.thumbnail_service import open_thumbnail
+from adumbra.services.thumbnail import open_thumbnail
 from adumbra.webserver.controllers.images import (
     copy_image_annotations,
     generate_segmented_image,
@@ -106,7 +105,7 @@ class Images(Resource):
         image.close()
         pil_image.close()
         try:
-            db_image = create_from_path(path, dataset_id).save()
+            db_image = ImageModel.create_from_path(path, dataset_id).save()
         except NotUniqueError:
             db_image = ImageModel.objects.get(path=path)
         return db_image.id
