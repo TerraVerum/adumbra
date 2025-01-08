@@ -1,8 +1,3 @@
-# pylint: disable=wrong-import-position
-# pylint: disable=wrong-import-order
-# monkey patching must be done before importing the remaining modules
-# https://eventlet.readthedocs.io/en/latest/patching.html#monkeypatching-the-standard-library
-
 import logging
 
 from fastapi.middleware.cors import CORSMiddleware
