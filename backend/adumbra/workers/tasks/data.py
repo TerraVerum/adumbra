@@ -5,6 +5,7 @@ import time
 import numpy as np
 from mongoengine import Q
 
+from adumbra.constants import COCO_PROPERTIES
 from adumbra.database import (
     AnnotationModel,
     CategoryModel,
@@ -35,7 +36,7 @@ def export_annotations(task_id, dataset_id, categories, with_empty_images=False)
         *CategoryModel.COCO_PROPERTIES
     )
     db_images = ImageModel.objects(deleted=False, dataset_id=dataset.id).only(
-        *ImageModel.COCO_PROPERTIES
+        *COCO_PROPERTIES["image"]
     )
     db_annotations = AnnotationModel.objects(deleted=False, category_id__in=categories)
 

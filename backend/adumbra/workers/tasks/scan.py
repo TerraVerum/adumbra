@@ -1,6 +1,8 @@
 import os
 
+from adumbra.constants import SUPPORTED_IMAGE_EXTENTIONS
 from adumbra.database import DatasetModel, ImageModel, TaskModel
+from adumbra.database.helpers.images import create_from_path
 from adumbra.workers import celery
 from adumbra.workers.socket import create_socket
 from adumbra.workers.tasks.thumbnails import thumbnail_generate_single_image
@@ -36,14 +38,14 @@ def scan_dataset(task_id, dataset_id):
         for file in files:
             path = os.path.join(root, file)
 
-            if path.endswith(ImageModel.PATTERN):
+            if path.endswith(SUPPORTED_IMAGE_EXTENTIONS):
                 db_image = ImageModel.objects(path=path).first()
 
                 if db_image is not None:
                     continue
 
                 try:
-                    ImageModel.create_from_path(path, dataset.id).save()
+                    create_from_path(path, dataset.id).save()
                     count += 1
                     task.info(f"New file found: {path}")
                 # TODO: This is a broad exception, should be narrowed down as we see more errors
