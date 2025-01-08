@@ -18,11 +18,11 @@ export default defineConfig({
     allowedHosts: ["localhost", "webserver"],
 
     proxy: {
-      "/api/models": {
+      "/api/assistants": {
         target: "http://ia:6000/api/",
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api\/models/, ""),
+        rewrite: (path) => path.replace(/^\/api\/assistants/, ""),
       },
       "/api": {
         target: "http://webserver:5001/api/",

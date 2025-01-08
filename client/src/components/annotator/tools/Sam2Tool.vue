@@ -107,7 +107,7 @@ function checkPoints(newPoints) {
       requestForm.append("image", blob);
 
       axios
-        .post(`/api/models/sam2`, requestForm, {
+        .post(`/api/assistants/sam2`, requestForm, {
           headers: {
             "Content-Type": "multipart/form-data",
           },

@@ -96,7 +96,7 @@ def index(path):
 
 
 # proxy to call AI services
-@app.route("/api/models/<path:path>", methods=["GET", "POST", "PUT"])
+@app.route("/api/assistants/<path:path>", methods=["GET", "POST", "PUT"])
 def proxy_request(path):
     json_data = None
     form_data = None
@@ -106,7 +106,7 @@ def proxy_request(path):
     target_proxy = os.getenv("TARGET_PROXY", "http://annotator_ia:6000")
 
     # Prepare the URL for the target server using the extracted host, port, and path
-    target_url = f"{target_proxy}/api/models/{path}"
+    target_url = f"{target_proxy}/api/{path}"
 
     print("proxy target url:", target_url, request.method, flush=True)
 

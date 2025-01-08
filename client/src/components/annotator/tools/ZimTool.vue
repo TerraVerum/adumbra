@@ -105,10 +105,11 @@ function checkPoints(newPoints) {
       requestForm.append("image", blob);
 
       axios
-        .post(`/api/models/zim`, requestForm, {
+        .post(`/api/assistants/zim`, requestForm, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
+          transformRequest: null,
         })
         .then((response) => {
           let compoundPath = createPath(
