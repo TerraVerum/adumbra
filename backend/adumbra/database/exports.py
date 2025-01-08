@@ -14,8 +14,5 @@ class ExportModel(ShimmedDynamicDocument):
     categories = fields.ListField(default=[])
     created_at = fields.DateTimeField(default=datetime.datetime.utcnow)
 
-    def get_file(self):
-        return
-
 
 __all__ = ["ExportModel"]
