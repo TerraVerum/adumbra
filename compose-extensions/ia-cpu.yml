@@ -11,7 +11,7 @@ services:
       dockerfile: ${PWD}/Dockerfile.backend
       target: adumbra-ia
     ports:
-      - 6000:6000
+      - 6001:6001
     environment:
       - FILE_WATCHER=true
       - FLASK__SECRET_KEY=RandomSecretKeyHere

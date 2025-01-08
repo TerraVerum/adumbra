@@ -17,10 +17,10 @@ fastapi_logger.handlers = gunicorn_logger.handlers
 fastapi_logger.setLevel(gunicorn_logger.level)
 
 origins = [
-    "http://ia:6000",
+    "http://ia:6001",
     "http://webserver:8080",
     "http://localhost:8080",
-    "http://localhost:6000",
+    "http://localhost:6001",
 ]
 
 app.add_middleware(

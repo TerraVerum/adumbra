@@ -103,7 +103,7 @@ def proxy_request(path):
     image = None
 
     print("try to proxy", flush=True)
-    target_proxy = os.getenv("TARGET_PROXY", "http://annotator_ia:6000")
+    target_proxy = os.getenv("TARGET_PROXY", "http://annotator_ia:6001")
 
     # Prepare the URL for the target server using the extracted host, port, and path
     target_url = f"{target_proxy}/api/{path}"

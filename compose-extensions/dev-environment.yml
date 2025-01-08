@@ -2,7 +2,7 @@
 
 services:
   ia:
-    command: ["fastapi", "dev", "adumbra/ia", "--reload", "--host", "0.0.0.0", "--port", "6000"]
+    command: ["fastapi", "dev", "adumbra/ia", "--reload", "--host", "0.0.0.0", "--port", "6001"]
     volumes:
       - ${PWD}/backend/adumbra:/workspace/adumbra
   webserver:

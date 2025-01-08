@@ -19,7 +19,7 @@ export default defineConfig({
 
     proxy: {
       "/api/assistants": {
-        target: "http://ia:6000/api/",
+        target: "http://ia:6001/api/",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api\/assistants/, ""),
