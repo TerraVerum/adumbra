@@ -13,7 +13,7 @@ from adumbra.ia.util.zim import ZIM
 from adumbra.types.assistants import SAM2Config, SegmentationResult, ZIMConfig
 
 BaseModel_co = t.TypeVar("BaseModel_co", bound=BaseModel, covariant=True)
-logger = logging.getLogger("gunicorn.error")
+logger = logging.getLogger(__name__)
 config_adapter = TypeAdapter[SAM2Config | ZIMConfig](SAM2Config | ZIMConfig)
 P = ParamSpec("P")
 R = t.TypeVar("R")

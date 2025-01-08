@@ -8,7 +8,7 @@ from adumbra.config import CONFIG
 from adumbra.ia.util import update_none_values
 from adumbra.types import ZIMConfig
 
-logger = logging.getLogger("gunicorn.error")
+logger = logging.getLogger(__name__)
 
 
 class ZIM:
