@@ -35,6 +35,7 @@ class ZIM:
             self.zim_model.cuda(torch.device(device))
         elif ia_settings.is_cpu_like() and device == "mps":
             logger.warning("ZIM doesn't support MPS acceleration, using CPU instead.")
+            device = "cpu"
         self.config = config
         self.is_loaded = True
         logger.info(f"ZIM model is loaded on device {device}.")
