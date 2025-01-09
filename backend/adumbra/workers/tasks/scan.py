@@ -1,5 +1,6 @@
 import os
 
+from adumbra.constants import SUPPORTED_IMAGE_EXTENTIONS
 from adumbra.database import DatasetModel, ImageModel, TaskModel
 from adumbra.workers import celery
 from adumbra.workers.socket import create_socket
@@ -36,7 +37,7 @@ def scan_dataset(task_id, dataset_id):
         for file in files:
             path = os.path.join(root, file)
 
-            if path.endswith(ImageModel.PATTERN):
+            if path.endswith(SUPPORTED_IMAGE_EXTENTIONS):
                 db_image = ImageModel.objects(path=path).first()
 
                 if db_image is not None:

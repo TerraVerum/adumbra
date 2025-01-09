@@ -10,7 +10,12 @@ from PIL import Image
 from werkzeug.datastructures import FileStorage
 
 from adumbra.database import AnnotationModel, DatasetModel, ImageModel
+from adumbra.services.thumbnail import open_thumbnail
 from adumbra.webserver.util import coco_util, query_util
+from adumbra.webserver.util.images import (
+    copy_image_annotations,
+    generate_segmented_image,
+)
 
 api = Namespace("image", description="Image related operations")
 
@@ -129,7 +134,7 @@ class ImageSegmentedId(Resource):
         if not height:
             height = image.height
 
-        pil_image = image.segmented()
+        pil_image = generate_segmented_image(image)
 
         image_io = io.BytesIO()
         pil_image = pil_image.convert("RGB")
@@ -168,7 +173,7 @@ class ImageId(Resource):
         # Show thumbnail if available and requested
         # Otherwise show full image
         if thumbnail:
-            image_thumbnail = image.open_thumbnail()
+            image_thumbnail = open_thumbnail(image.path)
             if image_thumbnail is not None:
                 pil_image = image_thumbnail
             else:
@@ -230,7 +235,7 @@ class ImageCopyAnnotations(Resource):
             image_id=image_from.id, category_id__in=category_ids, deleted=False
         )
 
-        return {"annotations_created": image_to.copy_annotations(query)}
+        return {"annotations_created": copy_image_annotations(image_to, query)}
 
 
 @api.route("/<int:image_id>/coco")
