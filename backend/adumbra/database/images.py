@@ -13,47 +13,12 @@ from adumbra.database.categories import CategoryModel
 from adumbra.database.datasets import DatasetModel
 from adumbra.database.events import Event, SessionEvent
 from adumbra.database.mongo_shim import ShimmedDynamicDocument
+from adumbra.services.thumbnail import delete_thumbnail
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class ImageModel(ShimmedDynamicDocument):
-
-    COCO_PROPERTIES = [
-        "id",
-        "width",
-        "height",
-        "file_name",
-        "path",
-        "license",
-        "flickr_url",
-        "coco_url",
-        "date_captured",
-        "dataset_id",
-    ]
-
-    # -- Contants
-    THUMBNAIL_DIRECTORY = ".thumbnail"
-    PATTERN = (
-        ".gif",
-        ".png",
-        ".jpg",
-        ".jpeg",
-        ".bmp",
-        ".tif",
-        ".tiff",
-        ".GIF",
-        ".PNG",
-        ".JPG",
-        ".JPEG",
-        ".BMP",
-        ".TIF",
-        ".TIFF",
-    )
-
-    # Set maximum thumbnail size (h x w) to use on dataset page
-    MAX_THUMBNAIL_DIM = (1024, 1024)
-
     # -- Private
     _dataset = None
 
@@ -89,8 +54,16 @@ class ImageModel(ShimmedDynamicDocument):
     events = fields.EmbeddedDocumentListField(Event)
     regenerate_thumbnail = fields.BooleanField(default=False)
 
+    # TODO: determine how to accomplish this without overriding the delete method
+    def delete(self, *args, **kwargs):
+        delete_thumbnail(self.path)
+        AnnotationModel.objects(image_id=self.id).delete()
+        return super(ImageModel, self).delete(*args, **kwargs)
+
     @classmethod
-    def create_from_path(cls, path, dataset_id=None):
+    def create_from_path(cls, path, dataset_id):
+        if not dataset_id:
+            raise ValueError("Dataset ID is required")
 
         pil_image = Image.open(path)
 
@@ -100,138 +73,17 @@ class ImageModel(ShimmedDynamicDocument):
         image.width = pil_image.size[0]
         image.height = pil_image.size[1]
         image.regenerate_thumbnail = True
-
-        if dataset_id is not None:
-            image.dataset_id = dataset_id
-        else:
-            # Get dataset name from path
-            folders = path.split("/")
-            i = folders.index("datasets")
-            dataset_name = folders[i + 1]
-
-            dataset = DatasetModel.objects(name=dataset_name).first()
-            if dataset is not None:
-                image.dataset_id = dataset.id
+        image.dataset_id = dataset_id
 
         pil_image.close()
 
         return image
-
-    def delete(self, *args, **kwargs):
-        self.thumbnail_delete()
-        AnnotationModel.objects(image_id=self.id).delete()
-        return super(ImageModel, self).delete(*args, **kwargs)
-
-    def segmented(self):
-        """
-        Generates segmented image
-        """
-        pil_image = self.generate_thumbnail()
-        pil_image = pil_image.convert("RGB")
-
-        self.update(is_modified=False)
-        return pil_image
-
-    def thumbnail(self):
-        """
-        Generates (if required) thumbnail
-        """
-
-        thumbnail_path = self.thumbnail_path()
-
-        if self.regenerate_thumbnail:
-
-            pil_image = self.generate_thumbnail()
-            pil_image = pil_image.convert("RGB")
-
-            # Resize image to fit in MAX_THUMBNAIL_DIM envelope as necessary
-            pil_image.thumbnail((self.MAX_THUMBNAIL_DIM[1], self.MAX_THUMBNAIL_DIM[0]))
-
-            # Save as a jpeg to improve loading time
-            # (note file extension will not match but allows for backwards compatibility)
-            pil_image.save(
-                thumbnail_path, "JPEG", quality=80, optimize=True, progressive=True
-            )
-
-            self.update(is_modified=False)
-            return pil_image
-        return None
-
-    def open_thumbnail(self):
-        """
-        Return thumbnail
-        """
-        thumbnail_path = self.thumbnail_path()
-        # check if thumbnail exists
-        if not os.path.exists(thumbnail_path):
-            return None
-        return Image.open(thumbnail_path)
-
-    def thumbnail_path(self):
-        folders = self.path.split("/")
-        folders.insert(len(folders) - 1, self.THUMBNAIL_DIRECTORY)
-
-        path = "/" + os.path.join(*folders)
-        directory = os.path.dirname(path)
-
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        return path
-
-    def thumbnail_delete(self):
-        path = self.thumbnail_path()
-        if os.path.isfile(path):
-            os.remove(path)
-
-    def generate_thumbnail(self):
-        image = self().draw(color_by_category=True, bbox=False)
-        return Image.fromarray(image)
-
-    def flag_thumbnail(self, flag=True):
-        """
-        Toggles values to regenerate thumbnail on next thumbnail request
-        """
-        if self.regenerate_thumbnail != flag:
-            self.update(regenerate_thumbnail=flag)
-
-    def copy_annotations(self, annotations):
-        """
-        Creates a copy of the annotations for this image
-        :param annotations: QuerySet of annotation models
-        :return: number of annotations
-        """
-        annotations = annotations.filter(width=self.width, height=self.height).exclude(
-            "events"
-        )
-
-        for annotation in annotations:
-            if annotation.area > 0 or len(annotation.keypoints) > 0:
-                clone = annotation.clone()
-
-                clone.dataset_id = self.dataset_id
-                clone.image_id = self.id
-
-                clone.save(copy=True)
-
-        return annotations.count()
 
     @property
     def dataset(self):
         if self._dataset is None:
             self._dataset = DatasetModel.objects(id=self.dataset_id).first()
         return self._dataset
-
-    def __call__(self):
-
-        image = im.Image.from_path(self.path)
-        for annotation in AnnotationModel.objects(
-            image_id=self.id, deleted=False
-        ).all():
-            if not annotation.is_empty():
-                image.add(annotation())
-
-        return image
 
     def can_delete(self, user):
         return user.can_delete(self.dataset)

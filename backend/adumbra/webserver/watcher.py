@@ -4,7 +4,8 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from adumbra.config import CONFIG
-from adumbra.database import ImageModel
+from adumbra.constants import SUPPORTED_IMAGE_EXTENTIONS
+from adumbra.database import DatasetModel, ImageModel
 from adumbra.webserver.util.thumbnails import generate_thumbnail
 
 
@@ -13,7 +14,7 @@ class ImageFolderHandler(FileSystemEventHandler):
     PREFIX = "[File Watcher]"
 
     def __init__(self, pattern=None):
-        self.pattern = pattern or ImageModel.PATTERN
+        self.pattern = pattern or SUPPORTED_IMAGE_EXTENTIONS
 
     def on_any_event(self, event):
 
@@ -40,7 +41,14 @@ class ImageFolderHandler(FileSystemEventHandler):
 
         if image is None and event.event_type != "deleted":
             self._log(f"Adding new file to database: {path}")
-            image = ImageModel.create_from_path(path).save()
+            # Get dataset name from path
+            folders = path.split("/")
+            i = folders.index("datasets")
+            dataset_name = folders[i + 1]
+
+            dataset = DatasetModel.objects(name=dataset_name).first()
+
+            image = ImageModel.create_from_path(path, dataset.id).save()
             generate_thumbnail(image)
 
         elif event.event_type == "moved":
