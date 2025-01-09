@@ -24,8 +24,7 @@ Model_T = t.TypeVar("Model_T", bound=BaseModel)
 AsForm = t.Annotated[Model_T, Form(media_type="multipart/form-data")]
 AsQuery = t.Annotated[Model_T, Query()]
 
-
-logger = logging.getLogger("gunicorn.error")
+logger = logging.getLogger(__name__)
 connect_mongo("ia")
 AssistantDBModel.ensure_defaults_available()
 
@@ -46,7 +45,6 @@ async def get_assistants(request: AsQuery[GetAssistantsRequest]):
     """
     if request is None:
         request = GetAssistantsRequest()
-    print(f"{request=}")
     kwargs = {}
     if request.assistant_name:
         kwargs["name"] = request.assistant_name
@@ -119,7 +117,6 @@ async def zim_segmentation(
     """
     Perform segmentation with a ZIM model.
     """
-    print(request.foreground_xy)
     if request.assistant_name == "zim":
         # Use default config
         config = ZIMConfig()

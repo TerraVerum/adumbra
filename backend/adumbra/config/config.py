@@ -75,9 +75,9 @@ class IASettings(BaseSettings):
 class Config(BaseSettings):
     model_config = SettingsConfigDict(env_nested_delimiter="__")
 
-    version: str = version_info.get_tag()
-
     name: str = "Adumbra"
+    version: str = version_info.get_tag()
+    log_level: str = "DEBUG"
 
     ### File Watcher
     file_watcher: bool = False

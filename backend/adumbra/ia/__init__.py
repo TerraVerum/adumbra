@@ -6,10 +6,14 @@ from adumbra.config import CONFIG
 from adumbra.database import create_from_json
 from adumbra.ia.api import app
 
-gunicorn_logger = logging.getLogger("gunicorn.error")
 fastapi_logger = logging.getLogger("fastapi")
-fastapi_logger.handlers = gunicorn_logger.handlers
-fastapi_logger.setLevel(gunicorn_logger.level)
+module_logger = logging.getLogger("adumbra.ia")
+
+for logger in [fastapi_logger, module_logger]:
+    logger.setLevel(CONFIG.log_level)
+    if not logger.handlers:
+        logger.addHandler(logging.StreamHandler())
+
 
 origins = [
     "http://ia:6001",
