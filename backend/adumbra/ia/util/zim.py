@@ -2,6 +2,7 @@ import logging
 import os
 
 import numpy as np
+import torch
 from zim_anything import ZimPredictor, build_zim_model
 
 from adumbra.config import CONFIG
@@ -29,7 +30,11 @@ class ZIM:
 
         self.zim_model = build_zim_model(
             **config.model_dump(exclude={"assistant_type"})
-        ).to(device)
+        )
+        if ia_settings.is_gpu_like():
+            self.zim_model.cuda(torch.device(device))
+        elif ia_settings.is_cpu_like() and device == "mps":
+            logger.warning("ZIM doesn't support MPS acceleration, using CPU instead.")
         self.config = config
         self.is_loaded = True
         logger.info(f"ZIM model is loaded on device {device}.")
