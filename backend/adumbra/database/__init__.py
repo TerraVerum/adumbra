@@ -18,6 +18,8 @@ FieldBase_T = t.TypeVar("FieldBase_T", bound=type[BaseField])
 
 
 def connect_mongo(name, host=None):
+    if not CONFIG.connect_to_mongo:
+        return
     if host is None:
         host = CONFIG.mongodb_host
     connect(name, host=host)

@@ -75,6 +75,11 @@ class IASettings(BaseSettings):
 class Config(BaseSettings):
     model_config = SettingsConfigDict(env_nested_delimiter="__")
 
+    connect_to_mongo: bool = True
+    """
+    Can be set to False to disable connecting to MongoDB; helpful for local testing
+    """
+
     name: str = "Adumbra"
     version: str = version_info.get_tag()
     log_level: str = "DEBUG"
