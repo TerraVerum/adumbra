@@ -1,4 +1,5 @@
 import logging
+import typing as t
 
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_restx import Namespace, Resource, reqparse
@@ -6,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from adumbra.config import CONFIG
 from adumbra.database import UserModel
-from adumbra.webserver.util.query_util import fix_ids
+from adumbra.util.api_bridge import queryset_to_json
 
 logger = logging.getLogger("gunicorn.error")
 
@@ -26,6 +27,12 @@ set_password = reqparse.RequestParser()
 set_password.add_argument("password", required=True, location="json")
 set_password.add_argument("new_password", required=True, location="json")
 
+current_user_model = t.cast(UserModel, current_user)
+"""
+Flask doesn't type hint the current_user object correctly by default so this explicitly
+cast version plays nicer with type checkers.
+"""
+
 
 @api.route("/")
 class User(Resource):
@@ -33,9 +40,8 @@ class User(Resource):
     def get(self):
         """Get information of current user"""
         if CONFIG.login_disabled:
-            return current_user.to_json()
-
-        user_json = fix_ids(current_user)
+            return current_user_model.to_json()
+        user_json = queryset_to_json(current_user_model)
         del user_json["password"]
 
         return {"user": user_json}
@@ -99,7 +105,7 @@ class UserRegister(Resource):
 
         login_user(user)
 
-        user_json = fix_ids(current_user)
+        user_json = queryset_to_json(current_user_model)
         del user_json["password"]
 
         return {"success": True, "user": user_json}
@@ -120,7 +126,7 @@ class UserLogin(Resource):
         if check_password_hash(user.password, args.get("password")):
             login_user(user)
 
-            user_json = fix_ids(current_user)
+            user_json = queryset_to_json(current_user_model)
             del user_json["password"]
 
             logger.info(f"User {current_user.username} has LOGIN")

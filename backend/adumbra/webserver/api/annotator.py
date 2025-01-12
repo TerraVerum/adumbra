@@ -6,7 +6,8 @@ from flask_restx import Namespace, Resource
 
 from adumbra.config import CONFIG
 from adumbra.database import AnnotationModel, CategoryModel, ImageModel, SessionEvent
-from adumbra.webserver.util import coco_util, query_util, thumbnails
+from adumbra.util.api_bridge import queryset_to_json
+from adumbra.webserver.util import coco_util, thumbnails
 
 api = Namespace("annotator", description="Annotator related operations")
 
@@ -176,9 +177,9 @@ class AnnotatorId(Resource):
 
         # Generate data about the image to return to client
         data = {
-            "image": query_util.fix_ids(image),
+            "image": queryset_to_json(image),
             "categories": [],
-            "dataset": query_util.fix_ids(dataset),
+            "dataset": queryset_to_json(dataset),
             "preferences": preferences,
             "permissions": {
                 "dataset": dataset.permissions(current_user),
@@ -198,17 +199,17 @@ class AnnotatorId(Resource):
         )
 
         for category in categories:
-            category = query_util.fix_ids(category[1])
+            category = queryset_to_json(category[1])
             category_id = category.get("id")
 
             annotations = []
             for annotation in all_annotations:
                 if annotation["category_id"] == category_id:
-                    annotations.append(query_util.fix_ids(annotation))
+                    annotations.append(queryset_to_json(annotation))
 
             category["show"] = True
             category["visualize"] = False
             category["annotations"] = [] if annotations is None else annotations
-            data.get("categories").append(category)
+            data["categories"].append(category)
 
         return data
