@@ -1,10 +1,10 @@
-import json
 import logging
 import typing as t
 import zipfile
 from pathlib import Path
 
 from fastapi import APIRouter, FastAPI, Form, Query
+from mongoengine import QuerySet
 from pydantic import BaseModel
 
 from adumbra.database import connect_mongo
@@ -19,6 +19,7 @@ from adumbra.types.requests import (
     SAM2SegmentationRequest,
     ZimSegmentationRequest,
 )
+from adumbra.util.api_bridge import Pagination, queryset_to_json
 
 Model_T = t.TypeVar("Model_T", bound=BaseModel)
 AsForm = t.Annotated[Model_T, Form(media_type="multipart/form-data")]
@@ -51,8 +52,14 @@ async def get_assistants(request: AsQuery[GetAssistantsRequest]):
     if request.assistant_type:
         kwargs["assistant_type"] = request.assistant_type
 
-    matches = AssistantDBModel.objects(**kwargs)
-    return json.loads(matches.to_json())
+    matches = t.cast(QuerySet, AssistantDBModel.objects(**kwargs))
+    if request.page:
+        pagination = Pagination.from_count_and_page(
+            matches.count(), request.page_size, request.page
+        )
+        matches = pagination.slice_objects(matches)
+    to_return = queryset_to_json(matches)
+    return to_return
 
 
 @router.post("/")

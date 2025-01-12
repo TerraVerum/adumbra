@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 from flask_restx import Namespace, Resource
 
 from adumbra.database import ExportModel, fix_ids
-from adumbra.webserver.util import query_util
+from adumbra.util import api_bridge
 
 api = Namespace("export", description="Export related operations")
 
@@ -26,7 +26,7 @@ class DatasetExportsRoot(Resource):
 
         time_delta = datetime.datetime.utcnow() - export.created_at
         d = fix_ids(export)
-        d["ago"] = query_util.td_format(time_delta)
+        d["ago"] = api_bridge.to_human_timedelta_str(time_delta)
         return d
 
     @login_required

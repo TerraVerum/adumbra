@@ -19,8 +19,8 @@ from adumbra.database import (
     ImageModel,
 )
 from adumbra.database.users import get_dataset_users
-from adumbra.webserver.util import coco_util, query_util
-from adumbra.webserver.util.pagination_util import Pagination
+from adumbra.util import api_bridge
+from adumbra.webserver.util import coco_util
 from adumbra.workers.tasks.helpers.utils import export_coco, import_coco, scan
 
 api = Namespace("dataset", description="Dataset related operations")
@@ -102,7 +102,9 @@ class Dataset(Resource):
     @login_required
     def get(self):
         """Returns all datasets"""
-        return query_util.fix_ids(current_user.datasets.filter(deleted=False).all())
+        return api_bridge.queryset_to_json(
+            current_user.datasets.filter(deleted=False).all()
+        )
 
     @api.expect(dataset_create)
     @login_required
@@ -122,7 +124,7 @@ class Dataset(Resource):
                 "message": "Dataset already exists. Check the undo tab to fully delete the dataset."
             }, 400
 
-        return query_util.fix_ids(dataset)
+        return api_bridge.queryset_to_json(dataset)
 
 
 def download_images(output_dir, args):
@@ -178,7 +180,7 @@ class DatasetMembers(Resource):
             return {"message": "Invalid dataset id"}, 400
 
         users = get_dataset_users(dataset)
-        return query_util.fix_ids(users)
+        return api_bridge.queryset_to_json(users)
 
 
 @api.route("/<int:dataset_id>/reset/metadata")
@@ -361,12 +363,15 @@ class DatasetData(Resource):
         folder = args["folder"]
 
         datasets = current_user.datasets.filter(deleted=False)
-        pagination = Pagination(datasets.count(), limit, page)
-        datasets = datasets[pagination.start : pagination.end]
+        pagination = api_bridge.Pagination.from_count_and_page(
+            datasets.count(), page_size=limit, page=page
+        )
+        datasets = pagination.slice_objects(datasets)
 
         datasets_json = []
         for dataset in datasets:
-            dataset_json = query_util.fix_ids(dataset)
+            dataset: DatasetModel
+            dataset_json = api_bridge.queryset_to_json(dataset)
             images = ImageModel.objects(dataset_id=dataset.id, deleted=False)
 
             dataset_json["numberImages"] = images.count()
@@ -379,10 +384,10 @@ class DatasetData(Resource):
             datasets_json.append(dataset_json)
 
         return {
-            "pagination": pagination.export(),
+            "pagination": pagination.to_dict(),
             "folder": folder,
             "datasets": datasets_json,
-            "categories": query_util.fix_ids(
+            "categories": api_bridge.queryset_to_json(
                 current_user.categories.filter(deleted=False).all()
             ),
         }
@@ -493,7 +498,7 @@ class DatasetDataId(Resource):
         pages = int(total / per_page) + 1
 
         images = images.skip(page * per_page).limit(per_page)
-        images_json = query_util.fix_ids(images)
+        images_json = api_bridge.queryset_to_json(images)
 
         # TODO: investigate additional metadata for image json response
         # for image in images:
@@ -524,8 +529,8 @@ class DatasetDataId(Resource):
             "images": images_json,
             "folder": folder,
             "directory": directory,
-            "dataset": query_util.fix_ids(dataset),
-            "categories": query_util.fix_ids(categories),
+            "dataset": api_bridge.queryset_to_json(dataset),
+            "categories": api_bridge.queryset_to_json(categories),
             "subdirectories": subdirectories,
         }
 
@@ -557,7 +562,7 @@ class DatasetExports(Resource):
             dict_export.append(
                 {
                     "id": db_export.id,
-                    "ago": query_util.td_format(time_delta),
+                    "ago": api_bridge.to_human_timedelta_str(time_delta),
                     "tags": db_export.tags,
                 }
             )

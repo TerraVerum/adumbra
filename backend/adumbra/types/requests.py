@@ -46,6 +46,12 @@ class GetAssistantsRequest(BaseModel):
     assistant_type: t.Literal["sam2", "zim"] | None = None
     """Type of the model"""
 
+    page: int = 1
+    """Page number to retrieve"""
+
+    page_size: int | None = 20
+    """Number of items per page. If None, all items are returned"""
+
 
 class BaseSegmentationRequest(BaseModel):
     model_config = ConfigDict(use_attribute_docstrings=True)

@@ -5,8 +5,7 @@ from flask_restx import Namespace, Resource, reqparse
 from mongoengine.errors import NotUniqueError
 
 from adumbra.database import AnnotationModel, CategoryModel
-from adumbra.webserver.util import query_util
-from adumbra.webserver.util.pagination_util import Pagination
+from adumbra.util.api_bridge import Pagination, queryset_to_json
 
 api = Namespace("category", description="Category related operations")
 
@@ -39,7 +38,7 @@ class CategoryRoot(Resource):
     @login_required
     def get(self):
         """Returns all categories"""
-        return query_util.fix_ids(current_user.categories.all())
+        return queryset_to_json(current_user.categories.all())
 
     @api.expect(create_category)
     @login_required
@@ -70,7 +69,7 @@ class CategoryRoot(Resource):
                 "message": "Category already exists. Check the undo tab to fully delete the category."
             }, 400
 
-        return query_util.fix_ids(category)
+        return queryset_to_json(category)
 
 
 @api.route("/<int:category_id>")
@@ -84,7 +83,7 @@ class CategoryId(Resource):
         if category is None:
             return {"success": False}, 400
 
-        return query_util.fix_ids(category)
+        return queryset_to_json(category)
 
     @login_required
     def delete(self, category_id):
@@ -176,8 +175,10 @@ class CategoriesData(Resource):
 
         categories = current_user.categories.filter(deleted=False)
 
-        pagination = Pagination(categories.count(), limit, page)
-        categories = query_util.fix_ids(categories[pagination.start : pagination.end])
+        pagination = Pagination.from_count_and_page(
+            categories.count(), page_size=limit, page=page
+        )
+        categories = queryset_to_json(pagination.slice_objects(categories))
 
         for category in categories:
             category["numberAnnotations"] = AnnotationModel.objects(
@@ -185,7 +186,7 @@ class CategoriesData(Resource):
             ).count()
 
         return {
-            "pagination": pagination.export(),
+            "pagination": pagination.to_dict(),
             "page": page,
             "categories": categories,
         }
