@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from adumbra.database import connect_mongo
 from adumbra.database.assistant import AssistantDBModel
-from adumbra.ia.util.segmentation_helpers import config_adapter, run_segmentation
+from adumbra.ia.util.segmentation import config_adapter, run_segmentation
 from adumbra.types.assistants import SAM2Config, SegmentationResult, ZIMConfig
 
 # Replace these imports with your actual implementations
