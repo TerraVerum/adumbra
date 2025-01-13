@@ -1,9 +1,10 @@
 import logging
+import shutil
 import typing as t
 import zipfile
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, Form, Query
+from fastapi import APIRouter, FastAPI, Form, HTTPException, Query
 from mongoengine import QuerySet
 from pydantic import BaseModel
 
@@ -82,7 +83,7 @@ async def create_assistant(request: AsForm[CreateAssistantRequest]):
         files = [request.assets]
 
     for file in files:
-        if zipfile.is_zipfile(file.file):
+        if file.filename and file.filename.endswith(".zip"):
             with zipfile.ZipFile(file.file, "r") as zip_ref:
                 zip_ref.extractall(save_path)
         else:
@@ -103,6 +104,21 @@ async def create_assistant(request: AsForm[CreateAssistantRequest]):
     new_model.save()
 
     return {"message": "Model created successfully"}
+
+
+@router.delete("/{assistant_id}")
+async def delete_assistant(assistant_id: str):
+    """
+    Delete a model with the given name and type.
+    """
+    assistant = AssistantDBModel.objects(id=assistant_id).first()
+    if not assistant:
+        raise HTTPException(status_code=404, detail="Model not found")
+    # Clean up assets
+    save_path = Path("/models") / assistant.assistant_type / assistant.name
+    shutil.rmtree(save_path, ignore_errors=True)
+    assistant.delete()
+    return {"message": "Model deleted successfully"}
 
 
 @router.get("/dummies")
