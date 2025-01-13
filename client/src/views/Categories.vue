@@ -241,8 +241,8 @@ const updatePage = (p) => {
     .then((response) => {
       categories.value = response.data.categories;
       page.value = response.data.pagination.page;
-      pages.value = response.data.pagination.pages;
-      categoryCount.value = response.data.pagination.total;
+      pages.value = response.data.pagination.total_pages;
+      categoryCount.value = response.data.pagination.total_results;
     })
     .finally(() => {
       procStore.removeProcess(process);
