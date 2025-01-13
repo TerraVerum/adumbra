@@ -104,15 +104,6 @@
                   <input v-model="color" type="color" class="form-control" />
                 </div>
               </div>
-
-              <div class="form-group">
-                <KeypointsDefinition
-                  ref="keypoints"
-                  v-model:keypoints-def="keypoint"
-                  element-id="keypoints"
-                  placeholder="Add a keypoint"
-                />
-              </div>
             </form>
           </div>
           <div class="modal-footer">
@@ -144,7 +135,6 @@
 import { ref, toRefs, reactive, onMounted, computed } from "vue";
 
 import axios from "axios";
-import KeypointsDefinition from "@/components/KeypointsDefinition.vue";
 import useAxiosRequest from "@/composables/axiosRequest";
 
 import { useAuthStore } from "@/store/user";
@@ -153,7 +143,6 @@ const authStore = useAuthStore();
 const { axiosReqestError, axiosReqestSuccess } = useAxiosRequest();
 
 const emit = defineEmits(["updatePage"]);
-const keypoints = ref([]);
 
 const props = defineProps({
   assistant: {
@@ -169,18 +158,12 @@ const state = reactive({
   superassistant: assistant.value.superassistant,
   color: props.assistant.color,
   metadata: [],
-  keypoint: {
-    labels: [...assistant.value.keypoint_labels],
-    edges: [...assistant.value.keypoint_edges],
-    colors: [...assistant.value.keypoint_colors],
-  },
   name: assistant.value.name,
   isMounted: false,
 });
 
-const { group, superassistant, color, metadata, keypoint, name } =
-  toRefs(state);
-defineExpose({ group, superassistant, color, metadata, keypoint, name });
+const { group, superassistant, color, metadata, name } = toRefs(state);
+defineExpose({ group, superassistant, color, metadata, name });
 
 onMounted(() => {
   state.isMounted = true;
@@ -188,23 +171,13 @@ onMounted(() => {
 });
 
 const isFormValid = computed(() => {
-  return (
-    state.isMounted &&
-    name.value.length !== 0 &&
-    keypoints.value &&
-    keypoints.value.valid
-  );
+  return state.isMounted && name.value.length !== 0;
 });
 
 const resetAssistantSettings = () => {
   name.value = props.assistant.name;
   superassistant.value = props.assistant.superassistant;
   color.value = props.assistant.color;
-  keypoint.value = {
-    labels: [...props.assistant.keypoint_labels],
-    edges: [...props.assistant.keypoint_edges],
-    colors: [...props.assistant.keypoint_colors],
-  };
 };
 const onCardClick = () => {};
 const onDownloadClick = () => {};
@@ -220,9 +193,6 @@ const onUpdateClick = () => {
       color: color.value,
       superassistant: superassistant.value,
       metadata: metadata.value,
-      keypoint_edges: keypoint.value.edges,
-      keypoint_labels: keypoint.value.labels,
-      keypoint_colors: keypoint.value.colors,
     });
     axiosReqestSuccess("Updating Assistant", "Assistant successfully updated");
 
@@ -230,9 +200,6 @@ const onUpdateClick = () => {
     assistant.value.superassistant = superassistant.value;
     assistant.value.color = color.value;
     assistant.value.metadata = { ...metadata.value };
-    assistant.value.keypoint_edges = [...keypoint.value.edges];
-    assistant.value.keypoint_labels = [...keypoint.value.labels];
-    assistant.value.keypoint_colors = [...keypoint.value.colors];
     emit("updatePage");
   } catch (error) {
     console.error("Error updating assistant:", error.message);

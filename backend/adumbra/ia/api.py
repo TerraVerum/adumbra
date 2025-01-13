@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from adumbra.database import connect_mongo
 from adumbra.database.assistant import AssistantDBModel
+from adumbra.ia.util import ModelDepends
 from adumbra.ia.util.segmentation import config_adapter, run_segmentation
 from adumbra.types.assistants import SAM2Config, SegmentationResult, ZIMConfig
 
@@ -16,6 +17,7 @@ from adumbra.types.assistants import SAM2Config, SegmentationResult, ZIMConfig
 from adumbra.types.requests import (
     CreateAssistantRequest,
     GetAssistantsRequest,
+    PaginationParams,
     SAM2SegmentationRequest,
     ZimSegmentationRequest,
 )
@@ -23,7 +25,7 @@ from adumbra.util.api_bridge import Pagination, queryset_to_json
 
 Model_T = t.TypeVar("Model_T", bound=BaseModel)
 AsForm = t.Annotated[Model_T, Form(media_type="multipart/form-data")]
-AsQuery = t.Annotated[Model_T, Query()]
+QueryDepends = t.Annotated[Model_T, ModelDepends(Query)]
 
 logger = logging.getLogger(__name__)
 connect_mongo("ia")
@@ -40,12 +42,13 @@ router = APIRouter(prefix="/api", tags=["assistants"])
 
 
 @router.get("/")
-async def get_assistants(request: AsQuery[GetAssistantsRequest]):
+async def get_assistants(
+    page_params: QueryDepends[PaginationParams],
+    request: QueryDepends[GetAssistantsRequest],
+):
     """
     Get all models that match the given criteria.
     """
-    if request is None:
-        request = GetAssistantsRequest()
     kwargs = {}
     if request.assistant_name:
         kwargs["name"] = request.assistant_name
@@ -53,13 +56,17 @@ async def get_assistants(request: AsQuery[GetAssistantsRequest]):
         kwargs["assistant_type"] = request.assistant_type
 
     matches = t.cast(QuerySet, AssistantDBModel.objects(**kwargs))
-    if request.page:
+    if page_params.page_size is not None:
         pagination = Pagination.from_count_and_page(
-            matches.count(), request.page_size, request.page
+            matches.count(), page_params.page_size, page_params.page
         )
         matches = pagination.slice_objects(matches)
-    to_return = queryset_to_json(matches)
-    return to_return
+    assistants = queryset_to_json(matches)
+    return {
+        "assistants": assistants,
+        "page": page_params.page,
+        "pagination": pagination.to_dict(),
+    }
 
 
 @router.post("/")

@@ -68,6 +68,56 @@
       </div>
     </div>
 
+    <div id="createAssistants" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header justify-content-between">
+            <h5 class="modal-title">Creating an Assistant</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label>Name:</label>
+                <input
+                  v-model="newAssistantName"
+                  class="form-control"
+                  :class="{
+                    'is-invalid': newAssistantName.trim().length === 0,
+                  }"
+                  required="true"
+                  placeholder="Name"
+                />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="!isFormValid"
+              :class="{ disabled: !isFormValid }"
+              @click="createAssistant"
+            >
+              Create Assistant
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="helpAssistants" class="modal fade" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -111,12 +161,11 @@
 </template>
 
 <script setup>
-import Assistant from "@/models/assistants";
 import AssistantCard from "@/components/cards/AssistantCard.vue";
 import Pagination from "@/components/Pagination.vue";
-import KeypointsDefinition from "@/components/KeypointsDefinition.vue";
+import Assistant from "@/models/assistants";
 
-import { ref, computed, watch, inject, onMounted, provide } from "vue";
+import { onMounted, computed, ref } from "vue";
 
 import useAxiosRequest from "@/composables/axiosRequest";
 const { axiosReqestError, axiosReqestSuccess } = useAxiosRequest();
@@ -138,10 +187,10 @@ const newAssistantKeypoint = ref({
   colors: [],
 });
 const assistants = ref([]);
-const status = ref({
-  data: { state: true, message: "Loading assistants" },
+
+const isFormValid = computed(() => {
+  return newAssistantName.value.length !== 0;
 });
-const keypoints = ref(null);
 
 const updatePage = (p) => {
   const process = "Loading assistants";
@@ -151,13 +200,13 @@ const updatePage = (p) => {
   page.value = p;
   Assistant.allData({
     page: p,
-    limit: limit.value,
+    page_size: limit.value,
   })
     .then((response) => {
       assistants.value = response.data.assistants;
       page.value = response.data.pagination.page;
-      pages.value = response.data.pagination.pages;
-      assistantCount.value = response.data.pagination.total;
+      pages.value = response.data.pagination.total_pages;
+      assistantCount.value = response.data.pagination.total_results;
     })
     .finally(() => {
       procStore.removeProcess(process);
@@ -169,17 +218,11 @@ const createAssistant = () => {
 
   Assistant.create({
     name: newAssistantName.value,
-    superassistant: newAssistantSuperassistant.value,
     color: newAssistantColor.value,
-    keypoint_labels: newAssistantKeypoint.value.labels,
-    keypoint_edges: newAssistantKeypoint.value.edges,
-    keypoint_colors: newAssistantKeypoint.value.colors,
   })
     .then(() => {
       newAssistantName.value = "";
-      newAssistantSuperassistant.value = "";
       newAssistantColor.value = null;
-      newAssistantKeypoint.value = {};
       updatePage();
     })
     .catch((error) => {

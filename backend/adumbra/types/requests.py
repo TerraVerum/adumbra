@@ -10,9 +10,11 @@ BaseModel_T = t.TypeVar("BaseModel_T", BaseModel, list)
 MaybeJson = t.Union[Json[BaseModel_T], BaseModel_T]
 
 
-class CreateAssistantRequest(BaseModel):
+class BaseRequest(BaseModel):
     model_config = ConfigDict(use_attribute_docstrings=True)
 
+
+class CreateAssistantRequest(BaseRequest):
     assistant_name: str
     """
     Name of this configuration. So the combination of model type + weights + params can
@@ -37,25 +39,23 @@ class CreateAssistantRequest(BaseModel):
     """
 
 
-class GetAssistantsRequest(BaseModel):
-    model_config = ConfigDict(use_attribute_docstrings=True)
+class PaginationParams(BaseRequest):
+    page_size: int | None = 20
+    """Number of items per page. If None, all items are returned"""
 
+    page: int = 1
+    """Page number to retrieve"""
+
+
+class GetAssistantsRequest(BaseRequest):
     assistant_name: str | None = None
     """Name of the configuration to retrieve"""
 
     assistant_type: t.Literal["sam2", "zim"] | None = None
     """Type of the model"""
 
-    page: int = 1
-    """Page number to retrieve"""
 
-    page_size: int | None = 20
-    """Number of items per page. If None, all items are returned"""
-
-
-class BaseSegmentationRequest(BaseModel):
-    model_config = ConfigDict(use_attribute_docstrings=True)
-
+class BaseSegmentationRequest(BaseRequest):
     assistant_name: str
     """Name of the model to use"""
 
