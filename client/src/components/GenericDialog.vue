@@ -21,8 +21,9 @@
           <button
             type="button"
             class="btn btn-primary"
+            :disabled="!actionIsValid"
             data-bs-dismiss="modal"
-            @click="onClickAction"
+            @click="emit('click-action')"
           >
             {{ action }}
           </button>
@@ -40,9 +41,12 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+const { actionIsValid = true } = defineProps<{
   title: string;
   action: string;
-  onClickAction: () => void;
+  actionIsValid?: boolean;
+}>();
+const emit = defineEmits<{
+  "click-action": [];
 }>();
 </script>

@@ -38,104 +38,57 @@
           :aria-labelledby="'dropdownAssistant' + assistant.id"
         >
           <a class="dropdown-item" @click="onDeleteClick">Delete</a>
-          <!--<a class="dropdown-item" @click="onDownloadClick"
-            >Download COCO & Images</a
-          >-->
-          <button
+          <!-- <button
             class="dropdown-item"
             data-bs-toggle="modal"
             :data-bs-target="'#assistantEdit' + assistant.id"
           >
             Edit
-          </button>
+          </button> -->
         </div>
       </div>
 
-      <div v-show="authStore.loginEnabled()" class="card-footer text-muted">
+      <!-- <div v-show="authStore.loginEnabled()" class="card-footer text-muted">
         Created by {{ assistant.creator }}
-      </div>
+      </div> -->
     </div>
 
-    <div
+    <GenericDialog
       :id="'assistantEdit' + assistant.id"
-      ref="assistant_settings"
-      class="modal fade"
-      role="dialog"
-      @hidden="resetAssistantSettings"
+      :title="'Edit Assistant: ' + assistant.name"
+      action="Update"
+      :actionIsValid="isFormValid"
+      @click-action="onUpdateClick"
     >
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header justify-content-between">
-            <h5 class="modal-title">Assistant: {{ assistant.name }}</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form>
-              <div class="form-group">
-                <label>Name</label>
-                <input
-                  type="text"
-                  :value="name"
-                  required="true"
-                  class="form-control"
-                  :class="{ 'is-invalid': name.length === 0 }"
-                  @input="name = $event.target.value"
-                />
-              </div>
+      <form>
+        <div class="form-group">
+          <label>Name</label>
+          <input
+            type="text"
+            :value="name"
+            required="true"
+            class="form-control"
+            :class="{ 'is-invalid': name.length === 0 }"
+            @input="name = $event.target.value"
+          />
+        </div>
 
-              <div class="form-group">
-                <label>Superassistant</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  :value="assistant.superassistant"
-                  @input="superassistant = $event.target.value"
-                />
-              </div>
-
-              <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Color</label>
-                <div class="col-sm-9">
-                  <input v-model="color" type="color" class="form-control" />
-                </div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-success"
-              :disabled="!isFormValid"
-              :class="{ disabled: !isFormValid }"
-              data-bs-dismiss="modal"
-              @click="onUpdateClick"
-            >
-              Update
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Close
-            </button>
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label">Color</label>
+          <div class="col-sm-9">
+            <input v-model="color" type="color" class="form-control" />
           </div>
         </div>
-      </div>
-    </div>
+      </form>
+    </GenericDialog>
   </div>
 </template>
 
 <script setup>
-import { ref, toRefs, reactive, onMounted, computed } from "vue";
-
-import axios from "axios";
+import GenericDialog from "@/components/GenericDialog.vue";
 import useAxiosRequest from "@/composables/axiosRequest";
+import axios from "axios";
+import { computed, onMounted, reactive, ref, toRefs } from "vue";
 
 import { useAuthStore } from "@/store/user";
 const authStore = useAuthStore();
@@ -155,15 +108,14 @@ const assistant = ref(props.assistant);
 
 const state = reactive({
   group: null,
-  superassistant: assistant.value.superassistant,
   color: props.assistant.color,
   metadata: [],
   name: assistant.value.name,
   isMounted: false,
 });
 
-const { group, superassistant, color, metadata, name } = toRefs(state);
-defineExpose({ group, superassistant, color, metadata, name });
+const { group, color, metadata, name } = toRefs(state);
+defineExpose({ group, color, metadata, name });
 
 onMounted(() => {
   state.isMounted = true;
@@ -176,30 +128,28 @@ const isFormValid = computed(() => {
 
 const resetAssistantSettings = () => {
   name.value = props.assistant.name;
-  superassistant.value = props.assistant.superassistant;
   color.value = props.assistant.color;
 };
 const onCardClick = () => {};
 const onDownloadClick = () => {};
 const onDeleteClick = async () => {
-  await axios.delete("/api/assistant/" + props.assistant.id);
+  await axios.delete("/api/assistants/" + props.assistant.id);
   emit("updatePage");
+  axiosReqestSuccess("Deleting Assistant", "Assistant successfully deleted");
 };
 
 const onUpdateClick = () => {
   try {
-    axios.put("/api/assistant/" + assistant.value.id, {
+    axios.put("/api/assistants/" + assistant.value.id, {
       name: name.value,
       color: color.value,
-      superassistant: superassistant.value,
       metadata: metadata.value,
     });
-    axiosReqestSuccess("Updating Assistant", "Assistant successfully updated");
 
     assistant.value.name = name.value;
-    assistant.value.superassistant = superassistant.value;
     assistant.value.color = color.value;
     assistant.value.metadata = { ...metadata.value };
+    axiosReqestSuccess("Updating Assistant", "Assistant successfully updated");
     emit("updatePage");
   } catch (error) {
     console.error("Error updating assistant:", error.message);

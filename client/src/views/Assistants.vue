@@ -68,55 +68,67 @@
       </div>
     </div>
 
-    <div id="createAssistants" class="modal fade" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header justify-content-between">
-            <h5 class="modal-title">Creating an Assistant</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form>
-              <div class="form-group">
-                <label>Name:</label>
-                <input
-                  v-model="newAssistantName"
-                  class="form-control"
-                  :class="{
-                    'is-invalid': newAssistantName.trim().length === 0,
-                  }"
-                  required="true"
-                  placeholder="Name"
-                />
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-primary"
-              :disabled="!isFormValid"
-              :class="{ disabled: !isFormValid }"
-              @click="createAssistant"
+    <GenericDialog
+      id="createAssistants"
+      action="Create"
+      :actionIsValid="isFormValid"
+      @click-action="createAssistant"
+      title="Creating an Assistant"
+    >
+      <form>
+        <div class="row mb-3 align-items-center">
+          <div class="col-4 text-end">
+            <label for="assistantType" class="form-label"
+              >Assistant Type:</label
             >
-              Create Assistant
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
+          </div>
+          <div class="col-8">
+            <select
+              id="assistantType"
+              class="form-select"
+              v-model="newAssistantForm.type"
             >
-              Close
-            </button>
+              <option v-for="type in Object.values(AssistantType)" :key="type">
+                {{ type }}
+              </option>
+            </select>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div class="row mb-3 align-items-center">
+          <div class="col-4 text-end">
+            <label for="assistantName" class="form-label">Name:</label>
+          </div>
+          <div class="col-8">
+            <input
+              id="assistantName"
+              v-model="newAssistantForm.name"
+              class="form-control"
+              :class="{
+                'is-invalid': newAssistantForm.name.trim().length === 0,
+              }"
+              required
+              placeholder="Name"
+            />
+          </div>
+        </div>
+
+        <div class="row mb-3 align-items-center">
+          <div class="col-4 text-end">
+            <label for="modelAssets" class="form-label">Model Assets:</label>
+          </div>
+          <div class="col-8">
+            <input
+              id="modelAssets"
+              type="file"
+              class="form-control"
+              multiple
+              @change="handleAssetsUpload"
+            />
+          </div>
+        </div>
+      </form>
+    </GenericDialog>
 
     <div id="helpAssistants" class="modal fade" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
@@ -160,12 +172,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AssistantCard from "@/components/cards/AssistantCard.vue";
 import Pagination from "@/components/Pagination.vue";
 import Assistant from "@/models/assistants";
+import GenericDialog from "@/components/GenericDialog.vue";
 
-import { onMounted, computed, ref } from "vue";
+import { onMounted, computed, reactive, ref } from "vue";
 
 import useAxiosRequest from "@/composables/axiosRequest";
 const { axiosReqestError, axiosReqestSuccess } = useAxiosRequest();
@@ -177,26 +190,38 @@ const assistantCount = ref(0);
 const pages = ref(1);
 const page = ref(1);
 const limit = ref(50);
-const range = ref(11);
-const newAssistantName = ref("");
-const newAssistantSuperassistant = ref("");
-const newAssistantColor = ref(null);
-const newAssistantKeypoint = ref({
-  labels: [],
-  edges: [],
-  colors: [],
-});
+enum AssistantType {
+  SAM2 = "sam2",
+  ZIM = "zim",
+}
+type AssistantProps = {
+  name: string;
+  type: AssistantType;
+  assets: File[];
+};
+const _formDefaults = {
+  name: "",
+  type: AssistantType.SAM2,
+  assets: [],
+};
+const newAssistantForm = reactive<AssistantProps>(
+  structuredClone(_formDefaults)
+);
 const assistants = ref([]);
 
 const isFormValid = computed(() => {
-  return newAssistantName.value.length !== 0;
+  return newAssistantForm.name.length !== 0;
 });
 
-const updatePage = (p) => {
+const handleAssetsUpload = (event) => {
+  newAssistantForm.assets = event.target.files;
+};
+
+const updatePage = () => {
   const process = "Loading assistants";
   procStore.addProcess(process);
 
-  p = p || page.value;
+  const p = page.value;
   page.value = p;
   Assistant.allData({
     page: p,
@@ -214,36 +239,27 @@ const updatePage = (p) => {
 };
 
 const createAssistant = () => {
-  if (newAssistantName.value.length < 1) return;
+  if (newAssistantForm.name.length < 1) return;
 
   Assistant.create({
-    name: newAssistantName.value,
-    color: newAssistantColor.value,
+    assistant_name: newAssistantForm.name,
+    assistant_type: newAssistantForm.type,
+    asset_files: newAssistantForm.assets,
   })
     .then(() => {
-      newAssistantName.value = "";
-      newAssistantColor.value = null;
+      Object.assign(newAssistantForm, structuredClone(_formDefaults));
       updatePage();
+      axiosReqestSuccess(
+        "Creating Assistant",
+        "Assistant successfully created"
+      );
     })
     .catch((error) => {
-      axiosReqestError("Creating Assistant", error.response.data.message);
+      axiosReqestError(
+        "Creating Assistant",
+        JSON.stringify(error.response.data.message)
+      );
     });
-};
-
-const previousPage = () => {
-  page.value -= 1;
-  if (page.value < 1) {
-    page.value = 1;
-  }
-  updatePage();
-};
-
-const nextPage = () => {
-  page.value += 1;
-  if (page.value > pages.value) {
-    page.value = pages.value;
-  }
-  updatePage();
 };
 
 onMounted(() => {
