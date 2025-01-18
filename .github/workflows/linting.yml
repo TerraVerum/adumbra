@@ -7,6 +7,8 @@ on:
       - synchronize
       - ready_for_review
       - labeled
+    paths:
+      - 'backend/**'
 
 jobs:
   black-pylint:
