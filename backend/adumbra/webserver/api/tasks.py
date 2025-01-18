@@ -2,7 +2,7 @@ from flask_login import login_required
 from flask_restx import Namespace, Resource
 
 from adumbra.database import TaskModel
-from adumbra.webserver.util import query_util
+from adumbra.util import api_bridge
 
 api = Namespace("tasks", description="Task related operations")
 
@@ -24,7 +24,7 @@ class Task(Resource):
             "errors",
             "warnings",
         ).all()
-        return query_util.fix_ids(query)
+        return api_bridge.queryset_to_json(query)
 
 
 @api.route("/<int:task_id>")

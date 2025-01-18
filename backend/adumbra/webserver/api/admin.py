@@ -1,9 +1,11 @@
+import typing as t
+
 from flask_login import current_user, login_required
 from flask_restx import Namespace, Resource, reqparse
 from werkzeug.security import generate_password_hash
 
 from adumbra.database import UserModel
-from adumbra.webserver.util.query_util import fix_ids
+from adumbra.util.api_bridge import queryset_to_json
 
 api = Namespace("admin", description="Admin related operations")
 
@@ -53,7 +55,7 @@ class Users(Resource):
             "pages": pages,
             "page": page,
             "per_page": per_page,
-            "users": fix_ids(user_model.all()),
+            "users": queryset_to_json(user_model.all()),
         }
 
 
@@ -85,7 +87,7 @@ class User(Resource):
         user.is_admin = args.get("isAdmin", False)
         user.save()
 
-        user_json = fix_ids(current_user)
+        user_json = queryset_to_json(t.cast(UserModel, current_user))
         del user_json["password"]
 
         return {"success": True, "user": user_json}
@@ -105,7 +107,7 @@ class Username(Resource):
         if user is None:
             return {"success": False, "message": "User not found"}, 400
 
-        return fix_ids(user)
+        return queryset_to_json(user)
 
     @api.expect(create_user)
     @login_required
@@ -130,7 +132,7 @@ class Username(Resource):
 
         user.save()
 
-        return fix_ids(user)
+        return queryset_to_json(user)
 
     @login_required
     def delete(self, username):

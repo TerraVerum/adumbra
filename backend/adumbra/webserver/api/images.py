@@ -11,7 +11,8 @@ from werkzeug.datastructures import FileStorage
 
 from adumbra.database import AnnotationModel, DatasetModel, ImageModel
 from adumbra.services.thumbnail import open_thumbnail
-from adumbra.webserver.util import coco_util, query_util
+from adumbra.util import api_bridge
+from adumbra.webserver.util import coco_util
 from adumbra.webserver.util.images import (
     copy_image_annotations,
     generate_segmented_image,
@@ -76,7 +77,7 @@ class Images(Resource):
             "page": page,
             "fields": fields,
             "per_page": per_page,
-            "images": query_util.fix_ids(images.all()),
+            "images": api_bridge.queryset_to_json(images.all()),
         }
 
     @api.expect(image_upload)

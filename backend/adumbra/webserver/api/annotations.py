@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 from flask_restx import Namespace, Resource, reqparse
 
 from adumbra.database import AnnotationModel
-from adumbra.webserver.util import query_util
+from adumbra.util import api_bridge
 
 logger = logging.getLogger("gunicorn.error")
 
@@ -30,7 +30,7 @@ class Annotation(Resource):
     @login_required
     def get(self):
         """Returns all annotations"""
-        return query_util.fix_ids(
+        return api_bridge.queryset_to_json(
             current_user.annotations.exclude("paper_object").all()
         )
 
@@ -70,7 +70,7 @@ class Annotation(Resource):
         except (ValueError, TypeError) as e:
             return {"message": str(e)}, 400
 
-        return query_util.fix_ids(annotation)
+        return api_bridge.queryset_to_json(annotation)
 
 
 @api.route("/<int:annotation_id>")
@@ -84,7 +84,7 @@ class AnnotationId(Resource):
         if annotation is None:
             return {"message": "Invalid annotation id"}, 400
 
-        return query_util.fix_ids(annotation)
+        return api_bridge.queryset_to_json(annotation)
 
     @login_required
     def delete(self, annotation_id):
@@ -120,4 +120,4 @@ class AnnotationId(Resource):
             f"{current_user.username} has updated category for annotation (id: {annotation.id})"
         )
         newAnnotation = current_user.annotations.filter(id=annotation_id).first()
-        return query_util.fix_ids(newAnnotation)
+        return api_bridge.queryset_to_json(newAnnotation)
