@@ -1,25 +1,27 @@
 import { createApp, h } from "vue";
-import { createPinia } from 'pinia';
+import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router";
 import paper from "paper";
-import FloatingVue from 'floating-vue'
-import {LoadingPlugin} from "vue-loading-overlay";
+import FloatingVue from "floating-vue";
+import { LoadingPlugin } from "vue-loading-overlay";
 import Vue3TouchEvents from "vue3-touch-events";
 import VueSocketIO from "vue-3-socket.io-ext";
-import Unlazy from '@unlazy/vue';
+import Unlazy from "@unlazy/vue";
+import { client } from "@/assistants-api/sdk.gen";
 
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
-import 'vue-toast-notification/dist/theme-bootstrap.css';
-import 'vue-loading-overlay/dist/css/index.css';
-import 'floating-vue/dist/style.css';
-
+import "vue-toast-notification/dist/theme-bootstrap.css";
+import "vue-loading-overlay/dist/css/index.css";
+import "floating-vue/dist/style.css";
 
 const socketio = new VueSocketIO({
   debug: true,
   connection: window.location.origin,
 });
+
+client.setConfig({ baseURL: "/api/assistants" });
 
 const app = createApp({
   render: () => h(App),

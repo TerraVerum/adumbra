@@ -8,11 +8,13 @@
     "build": "vite build",
     "optimize": "vite optimize",
     "serve": "vite preview --port 8080",
+    "openapi-ts": "openapi-ts",
     "lint": "eslint -c .eslintrc.js src",
     "lint-fix": "eslint --ext .js,.vue --ignore-path .gitignore --fix src",
     "test": "vue-cli-service test:unit"
   },
   "dependencies": {
+    "@hey-api/client-axios": "^0.4.0",
     "@popperjs/core": "^2.11.8",
     "@unlazy/vue": "^0.11.8",
     "autoprefixer": "^10.4.20",
@@ -35,6 +37,8 @@
   "devDependencies": {
     "@babel/core": "7.26.0",
     "@babel/eslint-parser": "^7.25.9",
+    "@hey-api/openapi-ts": "^0.61.2",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.1",
     "@vitejs/plugin-vue": "^5.1.5",
     "@vue/eslint-config-prettier": "^10.1.0",
     "@vue/test-utils": "^2.4.6",
@@ -43,6 +47,7 @@
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-vue": "^9.31.0",
     "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
     "vite": "^5.4.11"
   },
   "eslintConfig": {

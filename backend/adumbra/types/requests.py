@@ -24,17 +24,20 @@ class CreateAssistantRequest(BaseRequest):
     assistant_type: t.Literal["sam2", "zim"]
     """Type of the model"""
 
-    config_parameters: dict = {}
+    config_parameters: dict | None = None
     """
     Additional parameters the model's config should recognize. For ZIM, it's just a
     `checkpoint` parameter pointing to a folder with encoder/decoder onnx weights. For
     SAM2, you must pass `ckpt_path` and `config_file` pointing to the model's weights
     and config file.
+
+    If None, each asset's filename is used as a parameter key, and the asset's content
+    is used as the parameter value.
     """
 
-    assets: UploadFile | list[UploadFile]
+    assets: list[UploadFile]
     """
-    File or files referenced by name in the parameters. If a zip file is provided, it is
+    Files referenced by name in the parameters. If a zip file is provided, it is
     extracted maintaining directories.
     """
 
@@ -53,6 +56,12 @@ class GetAssistantsRequest(BaseRequest):
 
     assistant_type: t.Literal["sam2", "zim"] | None = None
     """Type of the model"""
+
+
+class GetAssistantsResponse(t.TypedDict):
+    assistants: list[dict]
+    page: int
+    pagination: dict
 
 
 class BaseSegmentationRequest(BaseRequest):

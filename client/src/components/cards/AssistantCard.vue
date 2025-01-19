@@ -25,13 +25,13 @@
 
         <br />
 
-        <div>
+        <!-- <div>
           <p v-if="assistant.numberAnnotations > 0">
             {{ assistant.numberAnnotations }} objects have been made with this
             assistant.
           </p>
           <p v-else>No annotations use this assistant</p>
-        </div>
+        </div> -->
 
         <div
           class="dropdown-menu"

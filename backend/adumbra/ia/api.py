@@ -18,6 +18,7 @@ from adumbra.types.assistants import SAM2Config, SegmentationResult, ZIMConfig
 from adumbra.types.requests import (
     CreateAssistantRequest,
     GetAssistantsRequest,
+    GetAssistantsResponse,
     PaginationParams,
     SAM2SegmentationRequest,
     ZimSegmentationRequest,
@@ -39,14 +40,14 @@ app = FastAPI(
     version="1.0.0",
     swagger_ui_parameters={"defaultModelRendering": "model"},
 )
-router = APIRouter(prefix="/api", tags=["assistants"])
+router = APIRouter(tags=["assistants"])
 
 
-@router.get("/")
+@router.get("/", response_model=GetAssistantsResponse)
 async def get_assistants(
     page_params: QueryDepends[PaginationParams],
     request: QueryDepends[GetAssistantsRequest],
-):
+) -> GetAssistantsResponse:
     """
     Get all models that match the given criteria.
     """
@@ -63,11 +64,9 @@ async def get_assistants(
         )
         matches = pagination.slice_objects(matches)
     assistants = queryset_to_json(matches)
-    return {
-        "assistants": assistants,
-        "page": page_params.page,
-        "pagination": pagination.to_dict(),
-    }
+    return GetAssistantsResponse(
+        assistants=assistants, page=page_params.page, pagination=pagination.to_dict()
+    )
 
 
 @router.post("/")
@@ -82,24 +81,32 @@ async def create_assistant(request: AsForm[CreateAssistantRequest]):
     else:
         files = [request.assets]
 
+    new_config = request.config_parameters or {}
+    file_as_param = request.config_parameters is None
+
     for file in files:
-        if file.filename and file.filename.endswith(".zip"):
+        assert file.filename is not None
+        destination = save_path / file.filename
+        if destination.suffix == ".zip":
+            destination = destination.with_suffix("")
+            destination.mkdir(exist_ok=True)
             with zipfile.ZipFile(file.file, "r") as zip_ref:
-                zip_ref.extractall(save_path)
+                zip_ref.extractall(destination)
         else:
-            assert file.filename is not None
-            with open(save_path / file.filename, "wb") as buffer:
-                buffer.write(file.file.read())
+            with open(destination, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+        if file_as_param:
+            new_config[destination.stem] = destination.as_posix()
 
     # Ensure parameters are recognized. This should fail with an informative error
     # message if the parameters are invalid.
     config_adapter.validate_python(
-        {**request.config_parameters, "assistant_type": request.assistant_type}
+        {**new_config, "assistant_type": request.assistant_type}
     )
     new_model = AssistantDBModel(
         name=request.assistant_name,
         assistant_type=request.assistant_type,
-        parameters=request.config_parameters,
+        parameters=new_config,
     )
     new_model.save()
 
@@ -192,4 +199,4 @@ app.include_router(router)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=6001)

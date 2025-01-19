@@ -72,7 +72,7 @@
       id="createAssistants"
       action="Create"
       :actionIsValid="isFormValid"
-      @click-action="createAssistant"
+      @click-action="onCreateAssistant"
       title="Creating an Assistant"
     >
       <form>
@@ -86,9 +86,9 @@
             <select
               id="assistantType"
               class="form-select"
-              v-model="newAssistantForm.type"
+              v-model="newAssistantInfo.type"
             >
-              <option v-for="type in Object.values(AssistantType)" :key="type">
+              <option v-for="type in Object.values(assistant_type)" :key="type">
                 {{ type }}
               </option>
             </select>
@@ -102,10 +102,10 @@
           <div class="col-8">
             <input
               id="assistantName"
-              v-model="newAssistantForm.name"
+              v-model="newAssistantInfo.name"
               class="form-control"
               :class="{
-                'is-invalid': newAssistantForm.name.trim().length === 0,
+                'is-invalid': newAssistantInfo.name.trim().length === 0,
               }"
               required
               placeholder="Name"
@@ -181,6 +181,11 @@ import GenericDialog from "@/components/GenericDialog.vue";
 import { onMounted, computed, reactive, ref } from "vue";
 
 import useAxiosRequest from "@/composables/axiosRequest";
+import {
+  assistant_type,
+  createAssistant,
+  type GetAssistantsResponse,
+} from "@/assistants-api/";
 const { axiosReqestError, axiosReqestSuccess } = useAxiosRequest();
 
 import { useProcStore } from "@/store/index";
@@ -190,31 +195,30 @@ const assistantCount = ref(0);
 const pages = ref(1);
 const page = ref(1);
 const limit = ref(50);
-enum AssistantType {
-  SAM2 = "sam2",
-  ZIM = "zim",
-}
 type AssistantProps = {
   name: string;
-  type: AssistantType;
+  type: assistant_type;
   assets: File[];
 };
 const _formDefaults = {
   name: "",
-  type: AssistantType.SAM2,
+  type: assistant_type.SAM2,
   assets: [],
 };
-const newAssistantForm = reactive<AssistantProps>(
+const newAssistantInfo = reactive<AssistantProps>(
   structuredClone(_formDefaults)
 );
-const assistants = ref([]);
+const assistants = ref<{ id: number; [key: string]: any }[]>([]);
 
 const isFormValid = computed(() => {
-  return newAssistantForm.name.length !== 0;
+  return newAssistantInfo.name.length !== 0;
 });
 
-const handleAssetsUpload = (event) => {
-  newAssistantForm.assets = event.target.files;
+const handleAssetsUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files) {
+    newAssistantInfo.assets = [...target.files];
+  }
 };
 
 const updatePage = () => {
@@ -238,28 +242,24 @@ const updatePage = () => {
     });
 };
 
-const createAssistant = () => {
-  if (newAssistantForm.name.length < 1) return;
+const onCreateAssistant = () => {
+  if (newAssistantInfo.name.length < 1) return;
 
-  Assistant.create({
-    assistant_name: newAssistantForm.name,
-    assistant_type: newAssistantForm.type,
-    asset_files: newAssistantForm.assets,
-  })
-    .then(() => {
-      Object.assign(newAssistantForm, structuredClone(_formDefaults));
-      updatePage();
-      axiosReqestSuccess(
-        "Creating Assistant",
-        "Assistant successfully created"
-      );
-    })
-    .catch((error) => {
-      axiosReqestError(
-        "Creating Assistant",
-        JSON.stringify(error.response.data.message)
-      );
-    });
+  createAssistant({
+    body: {
+      assistant_name: newAssistantInfo.name,
+      assistant_type: newAssistantInfo.type,
+      assets: newAssistantInfo.assets,
+    },
+  }).then((response) => {
+    if (response.error) {
+      axiosReqestError("Creating Assistant", response.error);
+      return;
+    }
+    Object.assign(newAssistantInfo, structuredClone(_formDefaults));
+    updatePage();
+    axiosReqestSuccess("Creating Assistant", "Assistant successfully created");
+  });
 };
 
 onMounted(() => {
