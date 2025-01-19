@@ -349,7 +349,7 @@
       id="generateDataset"
       :title="'Generate a Dataset'"
       :action="'Generate'"
-      :onClickAction="generateDataset"
+      @click-action="generateDataset"
     >
       <form>
         <div class="form-group">
@@ -367,7 +367,7 @@
       id="cocoUpload"
       :title="'Upload COCO Annotations'"
       :action="'Upload'"
-      :onClickAction="importCOCO"
+      @click-action="importCOCO"
     >
       <form>
         <div class="form-group">
@@ -381,7 +381,7 @@
       ref="imageUploadDialog"
       :title="'Upload Images'"
       :action="'Upload'"
-      :onClickAction="importImages"
+      @click-action="importImages"
     >
       <form>
         <div class="form-group">
@@ -400,8 +400,8 @@
     <GenericDialog
       id="exportDataset"
       :title="'Export ' + dataset.name"
-      :action="'Export'"
-      :onClickAction="exportCOCO"
+      action="'Export'"
+      @click-action="exportCOCO"
     >
       <form>
         <div class="form-group">
@@ -433,7 +433,7 @@
 import Navbar from "@/components/dataset/Navbar.vue";
 import ImagesTab from "@/components/dataset/ImagesTab.vue";
 import ExportsTab from "@/components/dataset/ExportsTab.vue";
-import GenericDialog from "@/components/dataset/GenericDialog.vue";
+import GenericDialog from "@/components/GenericDialog.vue";
 import PanelString from "@/components/PanelInputString.vue";
 import PanelToggle from "@/components/PanelToggle.vue";
 import PanelDropdown from "@/components/PanelInputDropdown.vue";

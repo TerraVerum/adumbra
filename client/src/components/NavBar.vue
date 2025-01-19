@@ -69,6 +69,17 @@
         </li>
         <li
           class="nav-item"
+          :class="{ active: $route.name === 'assistants' }"
+        >
+          <RouterLink
+            class="nav-link"
+            to="/assistants"
+          >
+            Assistants
+          </RouterLink>
+        </li>
+        <li
+          class="nav-item"
           :class="{ active: $route.name === 'undo' }"
         >
           <RouterLink

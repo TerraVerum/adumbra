@@ -12,13 +12,13 @@
 </template>
 <script setup>
 import paper from "paper";
+import { ref, watch, inject, onMounted } from "vue";
+
+import { sam2Segmentation } from "@/assistants-api/sdk.gen";
 import { useTools } from "@/composables/toolBar/tools";
-import axios from "axios";
-import { ref, computed, watch, inject, onMounted, provide } from "vue";
 
 const getCurrentAnnotation = inject("getCurrentAnnotation");
 const getImageRaster = inject("getImageRaster");
-const getImageId = inject("getImageId");
 
 const { click, state, iconColor, tooltip, name, cursor } = useTools();
 
@@ -45,14 +45,14 @@ watch(
   () => getImageRaster(),
   (value) => {
     localImageRaster.value = value;
-  }
+  },
 );
 
 watch(
   () => getCurrentAnnotation(),
   (value) => {
     localCurrentAnnotation.value = value;
-  }
+  },
 );
 
 function createPoint(point) {
@@ -97,26 +97,29 @@ function checkPoints(newPoints) {
       pointsList.push([Math.round(width + pt.x), Math.round(height + pt.y)]);
     });
 
-    const requestForm = new FormData();
-    requestForm.append("assistant_name", "sam2");
-    requestForm.append("foreground_xy", JSON.stringify(pointsList));
-    requestForm.append("parameters", JSON.stringify(settings.value));
-
     let canvas = getImageRaster().canvas;
     canvas.toBlob((blob) => {
-      requestForm.append("image", blob);
-
-      axios
-        .post(`/api/assistants/sam2`, requestForm, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
+      if (!blob) return;
+      sam2Segmentation({
+        body: {
+          assistant_name: settings.value.assistantName,
+          // https://github.com/hey-api/openapi-ts/issues/1585 means list[list[number]]
+          // doesn't convert correctly in form data, so use an explicitly stringified
+          // version in the meantime
+          foreground_xy: JSON.stringify(pointsList),
+          parameters: {},
+          image: blob,
+        },
+      })
         .then((response) => {
+          if (response.error) {
+            console.error(response.error);
+            return;
+          }
           let compoundPath = createPath(
             response.data.segmentation,
             width,
-            height
+            height,
           );
           currentAnnotation.unite(compoundPath);
         })

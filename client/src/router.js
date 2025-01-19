@@ -5,6 +5,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import About from "@/views/About";
 import Annotator from "@/views/Annotator";
 import AdminPanel from "@/views/AdminPanel";
+import Assistants from "@/views/Assistants.vue";
 import Datasets from "@/views/Datasets";
 import Categories from "@/views/Categories";
 import Undo from "@/views/Undo";
@@ -30,6 +31,11 @@ const routes = [
     path: "/categories",
     name: "categories",
     component: Categories,
+  },
+  {
+    path: "/assistants",
+    name: "assistants",
+    component: Assistants,
   },
   {
     path: "/undo",

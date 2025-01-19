@@ -10,9 +10,11 @@ BaseModel_T = t.TypeVar("BaseModel_T", BaseModel, list)
 MaybeJson = t.Union[Json[BaseModel_T], BaseModel_T]
 
 
-class CreateAssistantRequest(BaseModel):
+class BaseRequest(BaseModel):
     model_config = ConfigDict(use_attribute_docstrings=True)
 
+
+class CreateAssistantRequest(BaseRequest):
     assistant_name: str
     """
     Name of this configuration. So the combination of model type + weights + params can
@@ -22,40 +24,47 @@ class CreateAssistantRequest(BaseModel):
     assistant_type: t.Literal["sam2", "zim"]
     """Type of the model"""
 
-    config_parameters: dict = {}
+    config_parameters: dict | None = None
     """
     Additional parameters the model's config should recognize. For ZIM, it's just a
     `checkpoint` parameter pointing to a folder with encoder/decoder onnx weights. For
     SAM2, you must pass `ckpt_path` and `config_file` pointing to the model's weights
     and config file.
+
+    If None, each asset's filename is used as a parameter key, and the asset's content
+    is used as the parameter value.
     """
 
-    assets: UploadFile | list[UploadFile]
+    assets: list[UploadFile]
     """
-    File or files referenced by name in the parameters. If a zip file is provided, it is
+    Files referenced by name in the parameters. If a zip file is provided, it is
     extracted maintaining directories.
     """
 
 
-class GetAssistantsRequest(BaseModel):
-    model_config = ConfigDict(use_attribute_docstrings=True)
+class PaginationParams(BaseRequest):
+    page_size: int | None = 20
+    """Number of items per page. If None, all items are returned"""
 
+    page: int = 1
+    """Page number to retrieve"""
+
+
+class GetAssistantsRequest(BaseRequest):
     assistant_name: str | None = None
     """Name of the configuration to retrieve"""
 
     assistant_type: t.Literal["sam2", "zim"] | None = None
     """Type of the model"""
 
-    page: int = 1
-    """Page number to retrieve"""
 
-    page_size: int | None = 20
-    """Number of items per page. If None, all items are returned"""
+class GetAssistantsResponse(t.TypedDict):
+    assistants: list[dict]
+    page: int
+    pagination: dict
 
 
-class BaseSegmentationRequest(BaseModel):
-    model_config = ConfigDict(use_attribute_docstrings=True)
-
+class BaseSegmentationRequest(BaseRequest):
     assistant_name: str
     """Name of the model to use"""
 

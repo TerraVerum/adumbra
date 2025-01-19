@@ -14,9 +14,6 @@ logger = logging.getLogger(__name__)
 
 class ZIM:
     is_loaded = False
-    masks: np.ndarray | None = None
-    scores: np.ndarray | None = None
-    logits: np.ndarray | None = None
 
     def __init__(self, *, config: ZIMConfig | None = None):
         ia_settings = CONFIG.ia

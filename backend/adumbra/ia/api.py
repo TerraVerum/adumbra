@@ -1,21 +1,25 @@
 import logging
+import shutil
 import typing as t
 import zipfile
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, Form, Query
+from fastapi import APIRouter, FastAPI, Form, HTTPException, Query
 from mongoengine import QuerySet
 from pydantic import BaseModel
 
 from adumbra.database import connect_mongo
 from adumbra.database.assistant import AssistantDBModel
-from adumbra.ia.util.segmentation_helpers import config_adapter, run_segmentation
+from adumbra.ia.util import ModelDepends
+from adumbra.ia.util.segmentation import config_adapter, run_segmentation
 from adumbra.types.assistants import SAM2Config, SegmentationResult, ZIMConfig
 
 # Replace these imports with your actual implementations
 from adumbra.types.requests import (
     CreateAssistantRequest,
     GetAssistantsRequest,
+    GetAssistantsResponse,
+    PaginationParams,
     SAM2SegmentationRequest,
     ZimSegmentationRequest,
 )
@@ -23,7 +27,7 @@ from adumbra.util.api_bridge import Pagination, queryset_to_json
 
 Model_T = t.TypeVar("Model_T", bound=BaseModel)
 AsForm = t.Annotated[Model_T, Form(media_type="multipart/form-data")]
-AsQuery = t.Annotated[Model_T, Query()]
+QueryDepends = t.Annotated[Model_T, ModelDepends(Query)]
 
 logger = logging.getLogger(__name__)
 connect_mongo("ia")
@@ -36,16 +40,17 @@ app = FastAPI(
     version="1.0.0",
     swagger_ui_parameters={"defaultModelRendering": "model"},
 )
-router = APIRouter(prefix="/api", tags=["assistants"])
+router = APIRouter(tags=["assistants"])
 
 
-@router.get("/")
-async def get_assistants(request: AsQuery[GetAssistantsRequest]):
+@router.get("/", response_model=GetAssistantsResponse)
+async def get_assistants(
+    page_params: QueryDepends[PaginationParams],
+    request: QueryDepends[GetAssistantsRequest],
+) -> GetAssistantsResponse:
     """
     Get all models that match the given criteria.
     """
-    if request is None:
-        request = GetAssistantsRequest()
     kwargs = {}
     if request.assistant_name:
         kwargs["name"] = request.assistant_name
@@ -53,13 +58,15 @@ async def get_assistants(request: AsQuery[GetAssistantsRequest]):
         kwargs["assistant_type"] = request.assistant_type
 
     matches = t.cast(QuerySet, AssistantDBModel.objects(**kwargs))
-    if request.page:
+    if page_params.page_size is not None:
         pagination = Pagination.from_count_and_page(
-            matches.count(), request.page_size, request.page
+            matches.count(), page_params.page_size, page_params.page
         )
         matches = pagination.slice_objects(matches)
-    to_return = queryset_to_json(matches)
-    return to_return
+    assistants = queryset_to_json(matches)
+    return GetAssistantsResponse(
+        assistants=assistants, page=page_params.page, pagination=pagination.to_dict()
+    )
 
 
 @router.post("/")
@@ -74,28 +81,51 @@ async def create_assistant(request: AsForm[CreateAssistantRequest]):
     else:
         files = [request.assets]
 
+    new_config = request.config_parameters or {}
+    file_as_param = request.config_parameters is None
+
     for file in files:
-        if zipfile.is_zipfile(file.file):
+        assert file.filename is not None
+        destination = save_path / file.filename
+        if destination.suffix == ".zip":
+            destination = destination.with_suffix("")
+            destination.mkdir(exist_ok=True)
             with zipfile.ZipFile(file.file, "r") as zip_ref:
-                zip_ref.extractall(save_path)
+                zip_ref.extractall(destination)
         else:
-            assert file.filename is not None
-            with open(save_path / file.filename, "wb") as buffer:
-                buffer.write(file.file.read())
+            with open(destination, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+        if file_as_param:
+            new_config[destination.stem] = destination.as_posix()
 
     # Ensure parameters are recognized. This should fail with an informative error
     # message if the parameters are invalid.
     config_adapter.validate_python(
-        {**request.config_parameters, "assistant_type": request.assistant_type}
+        {**new_config, "assistant_type": request.assistant_type}
     )
     new_model = AssistantDBModel(
         name=request.assistant_name,
         assistant_type=request.assistant_type,
-        parameters=request.config_parameters,
+        parameters=new_config,
     )
     new_model.save()
 
     return {"message": "Model created successfully"}
+
+
+@router.delete("/{assistant_id}")
+async def delete_assistant(assistant_id: str):
+    """
+    Delete a model with the given name and type.
+    """
+    assistant = AssistantDBModel.objects(id=assistant_id).first()
+    if not assistant:
+        raise HTTPException(status_code=404, detail="Model not found")
+    # Clean up assets
+    save_path = Path("/models") / assistant.assistant_type / assistant.name
+    shutil.rmtree(save_path, ignore_errors=True)
+    assistant.delete()
+    return {"message": "Model deleted successfully"}
 
 
 @router.get("/dummies")
@@ -169,4 +199,4 @@ app.include_router(router)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=6001)

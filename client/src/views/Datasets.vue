@@ -270,7 +270,7 @@ const updatePage = (p) => {
           datasets.value = response.data.datasets;
           categories.value = response.data.categories;
           subdirectories.value = response.data.subdirectories;
-          pages.value = response.data.pagination.pages;
+          pages.value = response.data.pagination.total_pages;
           page.value = response.data.pagination.page;
           AdminPanel.getUsers(limit.value).then((response) => {
             users.value = response.data.users;
