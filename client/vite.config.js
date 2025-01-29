@@ -2,13 +2,13 @@
 import vue from "@vitejs/plugin-vue";
 import path from "path";
 import { defineConfig, loadEnv } from "vite";
-import vue from "@vitejs/plugin-vue";
-import { defineConfig, loadEnv } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
-  const allowedHosts = (env.VITE_ALLOWED_HOSTS || "").split(",").filter(Boolean);
+  const allowedHosts = (env.VITE_ALLOWED_HOSTS || "")
+    .split(",")
+    .filter(Boolean);
   allowedHosts.push("localhost", "webserver");
 
   return {
