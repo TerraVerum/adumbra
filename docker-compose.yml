@@ -37,6 +37,8 @@ services:
       target: production  # Default since production is the last stage
     ports:
       - "8080:8080"
+    environment:
+      - VITE_ALLOWED_HOSTS=${VITE_ALLOWED_HOSTS}
     depends_on:
       - webserver
   webserver:
