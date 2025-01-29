@@ -11,7 +11,6 @@ export default defineConfig(({ mode }) => {
     .filter(Boolean);
   allowedHosts.push("localhost", "webserver");
 
-  console.log("VITE_ALLOWED_HOSTS", allowedHosts);
   return {
     plugins: [vue()],
     strict: false,
