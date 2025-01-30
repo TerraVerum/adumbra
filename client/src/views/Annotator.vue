@@ -457,65 +457,87 @@ const getPaper = () => {
     return paper;
 };
 
+/* save function */
 const save = (callback) => {
-      let process = "Saving";
-      procStore.addProcess(process);
+  const process = "Saving";
+  procStore.addProcess(process);
 
-      let data = {
-        mode: mode.value,
-        user: {
-          bbox: bbox.value.exportBBox(),
-          polygon: polygon.value.exportPolygon(),
-          eraser: eraser.value.exportEraser(),
-          brush: brush.value.exportBrush(),
-          magicwand: magicwand.value.exportWand(),
-          select: select.value.exportSelect(),
-          settings: settings.value.exportSettings(),
-        },
-        dataset: dataset.value,
-        image: {
-          id: image.value.id,
-          metadata: settings.value.exportMetadata(),
-          settings: {
-            selectedLayers: current.value
-          },
-          category_ids: []
-        },
-        settings: {
-          activeTool: activeTool.value,
-          zoom: zoom.value,
-          tools: {}
-        },
-        categories: []
-      };
-
-      if (categorylist.value != null && mode.value === "segment") {
-        image.value.categoryIds = [];
-        categorylist.value.forEach((cat) => {
-          let categoryData = cat.exportCategory();
-          data.categories.push(categoryData);
-
-          if (categoryData.annotations.length > 0) {
-            let categoryIds = image.value.categoryIds;
-            if (categoryIds.indexOf(categoryData.id) === -1) {
-              categoryIds.push(categoryData.id);
-            }
-          }
-        });
-      }
-
-      data.image.category_ids = image.value.categoryIds;
-
-      axios
-        .post("/api/annotator/data", JSON.stringify(data))
-        .then(() => {
-          //TODO: updateUser
-          if (callback != null) callback();
-        })
-        .finally(() => {
-            procStore.removeProcess(process);
-        });
+  try {
+    const data = prepareSaveData();
+    sendDataToServer(data, callback);
+  } finally {
+    procStore.removeProcess(process);
+  }
 };
+
+const prepareSaveData = () => {
+  const data = {
+    mode: mode.value,
+    user: exportUserTools(),
+    dataset: dataset.value,
+    image: exportImageData(),
+    settings: exportSettings(),
+    categories: []
+  };
+
+  if (categorylist.value != null && mode.value === "segment") {
+    populateCategories(data);
+  }
+
+  return data;
+};
+
+const exportUserTools = () => ({
+  bbox: bbox.value.exportBBox(),
+  polygon: polygon.value.exportPolygon(),
+  eraser: eraser.value.exportEraser(),
+  brush: brush.value.exportBrush(),
+  magicwand: magicwand.value.exportWand(),
+  select: select.value.exportSelect(),
+  settings: settings.value.exportSettings()
+});
+
+const exportImageData = () => ({
+  id: image.value.id,
+  metadata: settings.value.exportMetadata(),
+  settings: {
+    selectedLayers: current.value
+  },
+  category_ids: []
+});
+
+const exportSettings = () => ({
+  activeTool: activeTool.value,
+  zoom: zoom.value,
+  tools: {}
+});
+
+const populateCategories = (data) => {
+  image.value.categoryIds = [];
+  categorylist.value.forEach((cat) => {
+    const categoryData = cat.exportCategory();
+    data.categories.push(categoryData);
+
+    if (categoryData.annotations.length > 0) {
+      const categoryIds = image.value.categoryIds;
+      if (categoryIds.indexOf(categoryData.id) === -1) {
+        categoryIds.push(categoryData.id);
+      }
+    }
+  });
+
+  data.image.category_ids = image.value.categoryIds;
+};
+
+const sendDataToServer = (data, callback) => {
+  axios
+    .post("/api/annotator/data", JSON.stringify(data))
+    .then(() => {
+      if (callback != null) callback();
+    });
+};
+/* end - save function */
+
 
 
 const onpinchstart = (e) => {
@@ -551,20 +573,20 @@ const onpinch = (e) => {
 const onWheel = (e) => {
   e.preventDefault();
   if (!doneLoading.value) return;
-  let view = paper.view;
+  const view = paper.view;
   if (e.ctrlKey) {
     // Pan up and down
-    let delta = new paper.Point(0, 0.5 * e.deltaY);
+    const delta = new paper.Point(0, 0.5 * e.deltaY);
     paper.view.setCenter(view.center.add(delta));
   } else if (e.shiftKey) {
     // Pan left and right
-    let delta = new paper.Point(0.5 * e.deltaY, 0);
+    const delta = new paper.Point(0.5 * e.deltaY, 0);
     paper.view.setCenter(view.center.add(delta));
   } else {
-    let viewPosition = view.viewToProject(
+    const viewPosition = view.viewToProject(
       new paper.Point(e.offsetX, e.offsetY)
     );
-    let transform = changeZoom(e.deltaY, viewPosition);
+    const transform = changeZoom(e.deltaY, viewPosition);
     if (transform.zoom < 10 && transform.zoom > 0.01) {
       image.value.scale = 1 / transform.zoom;
       paper.view.zoom = transform.zoom;
@@ -617,8 +639,8 @@ const initCanvas = () => {
 
       image.value.raster = new paper.Raster(image.value.url);
       image.value.raster.onLoad = () => {
-        let width = image.value.raster.width;
-        let height = image.value.raster.height;
+        const width = image.value.raster.width;
+        const height = image.value.raster.height;
 
         image.value.raster.sendToBack();
         fit();
@@ -626,15 +648,15 @@ const initCanvas = () => {
 
         procStore.removeProcess(process);
 
-        let tempCtx = document.createElement("canvas").getContext("2d");
+        const tempCtx = document.createElement("canvas").getContext("2d");
         tempCtx.canvas.width = width;
         tempCtx.canvas.height = height;
         tempCtx.drawImage(image.value.raster.image, 0, 0);
 
         image.value.data = tempCtx.getImageData(0, 0, width, height);
-        let fontSize = width * 0.025;
+        const fontSize = width * 0.025;
 
-        let positionTopLeft = new paper.Point(
+        const positionTopLeft = new paper.Point(
           -width / 2,
           -height / 2 - fontSize * 0.5
         );
@@ -643,7 +665,7 @@ const initCanvas = () => {
         text.value.topLeft.fillColor = "white";
         text.value.topLeft.content = image.value.filename;
 
-        let positionTopRight = new paper.Point(
+        const positionTopRight = new paper.Point(
           width / 2,
           -height / 2 - fontSize * 0.4
         );
@@ -672,59 +694,75 @@ const updateCurrentAnnotation = (value) => {
     current.value.annotation = -1;
 };
 
+/* getData */
 const getData = (callback) => {
-      let process = "Loading annotation data";
+  const process = "Loading annotation data";
+  procStore.addProcess(process);
 
-       procStore.addProcess(process);
-
-      loading.value.data = true;
-      axios
-        .get("/api/annotator/data/" + image.value.id)
-        .then((response) => {
-          let data = response.data;
-
-          loading.value.data = false;
-          // Set image data
-          image.value.metadata = data.image.metadata || {};
-          image.value.filename = data.image.file_name;
-          image.value.next = data.image.next;
-          image.value.previous = data.image.previous;
-          image.value.categoryIds = data.image.category_ids || [];
-
-          annotating.value = data.image.annotating || [];
-
-          // Set other data
-          dataset.value = data.dataset;
-          categories.value = data.categories;
-
-          // Update status
-          procStore.setDataset(dataset.value);
-
-
-          let preferences = data.preferences;
-          setPreferences(preferences);
-
-          if (text.value.topLeft != null) {
-            text.value.topLeft.content = image.value.filename;
-          }
-
-          nextTick(() => {
-            showAll();
-          });
-
-          if (callback != null) callback();
-        })
-        .catch(() => {     
-              axiosReqestError(
-                "Could not find requested image",
-                "Redirecting to previous page."
-              );
-              router.go(-1);
-        })
-        .finally(() => {
-            procStore.removeProcess(process);
-        });
+  try {
+    fetchData()
+      .then((data) => {
+        updateStateWithData(data);
+        handlePreferences(data.preferences);
+        updateUI();
+        if (callback != null) callback();
+      })
+      .catch(handleFetchError)
+      .finally(() => {
+        procStore.removeProcess(process);
+      });
+  } catch (error) {
+    console.error("Unexpected error in getData:", error);
+    procStore.removeProcess(process);
+  }
 };
+
+const fetchData = async () => {
+  loading.value.data = true;
+  try {
+    const response = await axios.get("/api/annotator/data/" + image.value.id);
+    return response.data;
+  } finally {
+    loading.value.data = false;
+  }
+};
+
+const updateStateWithData = (data) => {
+  image.value.metadata = data.image.metadata || {};
+  image.value.filename = data.image.file_name;
+  image.value.next = data.image.next;
+  image.value.previous = data.image.previous;
+  image.value.categoryIds = data.image.category_ids || [];
+  annotating.value = data.image.annotating || [];
+  dataset.value = data.dataset;
+  categories.value = data.categories;
+  procStore.setDataset(dataset.value);
+};
+
+const handlePreferences = (preferences) => {
+  setPreferences(preferences);
+};
+
+const updateUI = () => {
+  if (text.value.topLeft != null) {
+    text.value.topLeft.content = image.value.filename;
+  }
+
+  nextTick(() => {
+    showAll();
+  });
+};
+
+const handleFetchError = () => {
+  axiosReqestError(
+    "Could not find requested image",
+    "Redirecting to previous page."
+  );
+  router.go(-1);
+};
+/* end - getData */
+
+
 
 const onCategoryClick = (indices) => {
       current.value.annotation = indices.annotation;
@@ -786,30 +824,23 @@ const onKeypointsComplete = () => {
 const getCategoryByIndex = (index) => {
       if (index == null) return null;
       if (index < 0) return null;
-      
-      let cat = categorylist.value;
-      // let cat = backup.value;
 
+      const cat = categorylist.value;
       if (cat == null) return null;
-      
       if (cat.length < 1 || index >= cat.length) return null;
 
       return cat[index];
-      // return backup.value[index];
 };
 
 const getCategory = (index) => {
       if (index == null) return null;
       if (index < 0) return null;
 
-      let cat = category.value;
-      // let cat = backup.value;
-
+      const cat = category.value;
       if (cat == null) return null;
       if (cat.length < 1 || index >= cat.length) return null;
 
       return cat[index];
-      // return backup.value[index];
 };
 
 const uniteCurrentAnnotation = (compound, simplify = true, undoable = true, isBBox = false) => {
@@ -956,7 +987,7 @@ const decrementAnnotation = () => {
 };
 
 const incrementKeypoint = () => {
-    let keypointCount = currentAnnotationFromList.value.keypointLabels.length;
+    const keypointCount = currentAnnotationFromList.value.keypointLabels.length;
     if (current.value.keypoint === keypointCount - 1) {
       incrementAnnotation();
     } else {
@@ -1051,7 +1082,8 @@ const stepIn = () => {
 };
 
 const stepOut = () => {
-  if (currentCategoryFromList.value != null) {
+    if (currentCategoryFromList.value == null) return;
+
     if (
       currentAnnotationFromList.value != null &&
       currentAnnotationFromList.value.showKeypoints
@@ -1064,7 +1096,6 @@ const stepOut = () => {
     } else if (currentCategoryFromList.value.isVisible) {
       currentCategoryFromList.value.isVisible = false;
     }
-  }
 };
 
 const createAnnotation = () => {
@@ -1073,19 +1104,26 @@ const createAnnotation = () => {
         }
 };
 
+
+const deleteKeypoint = (annotation, keypoint) => {
+    if (!annotation || !keypoint) return;
+
+    annotation.keypoints.deleteKeypoint(keypoint);
+    annotation.tagRecomputeCounter++;
+    annotation.currentKeypoint = null;
+};
+
 const deleteAnnotation = () => {
-    if (currentAnnotationFromList.value) {
-        let currentKeypoint = currentAnnotationFromList.value.currentKeypoint;
-        if (currentKeypoint) {
-            currentAnnotationFromList.value.keypoints.deleteKeypoint(
-                        currentKeypoint
-            );
-            currentAnnotationFromList.value.tagRecomputeCounter++;
-            currentAnnotationFromList.value.currentKeypoint = null;
-        } else {
-            currentAnnotationFromList.value.deleteAnnotation();
-        }
+    const annotation = currentAnnotationFromList.value;
+    if (!annotation) return;
+
+    const currentKeypoint = annotation.currentKeypoint;
+    if (currentKeypoint) {
+        deleteKeypoint(annotation, currentKeypoint);
+        return;
     }
+
+    annotation.deleteAnnotation();
 };
 
 const doShortcutAction = (action) => {
@@ -1139,7 +1177,7 @@ const hideAll = () => {
 };
 
 const findCategoryByName = (categoryName) => {
-      let categoryComponent = categorylist.value.find(
+      const categoryComponent = categorylist.value.find(
         (cat) =>
           cat.category.name.toLowerCase() === categoryName.toLowerCase()
       );
@@ -1153,7 +1191,7 @@ const addAnnotation = (categoryName, segments, keypoints, isbbox = false) => {
 
       if (keypoints.length == 0 && segments.length == 0) return;
 
-      let localcategory = findCategoryByName(categoryName);
+      const localcategory = findCategoryByName(categoryName);
       if (localcategory == null) return;
 
       Annotations.create({
@@ -1163,7 +1201,7 @@ const addAnnotation = (categoryName, segments, keypoints, isbbox = false) => {
         keypoints: keypoints,
         isbbox: isbbox,
       }).then((response) => {
-        let localannotation = response.data;
+        const localannotation = response.data;
         localcategory.annotations.push(localannotation);
       });
 };
@@ -1176,7 +1214,7 @@ const updateAnnotationCategory = (annotation, oldCategory, newCategoryName) => {
   currentAnnotationFromList.value.deleteAnnot(annotation.id);
   Annotations.update(annotation.id, { category_id: newCategory.id }).then(
     (response) => {
-      let newAnnotation = {
+      const newAnnotation = {
         ...response.data,
         ...annotation,
         metadata: response.data.metadata,
@@ -1247,14 +1285,13 @@ watch(
 watch(
   () => currentCategoryFromList.value, 
   (newCategory) => {
-      if (newCategory != null) {
-        if (
+      if (newCategory == null) return;
+      if (
           currentAnnotationFromList.value == null ||
           !newCategory.showAnnotations
-        ) {
+      ) {
           let element = newCategory.$el;
           scrollElement(element);
-        }
       }
 });
 
@@ -1262,11 +1299,10 @@ watch(
   () => currentAnnotationFromList.value, 
   (newElement) => {
       updateKeypointPanel.value = updateKeypointPanel.value + 1;
-      if (newElement != null) {
-        if (newElement.showAnnotations) {
+      if (newElement == null) return;
+      if (newElement.showAnnotations) {
           let element = newElement.$el;
           scrollElement(element);
-        }
       }
 });
 
@@ -1274,7 +1310,7 @@ watch(
   () => current.value.category, 
   (cc) => {
       if (cc < -1) current.value.category = -1;
-      let max = categories.value.length;
+      const max = categories.value.length;
       if (cc > max) {
         current.value.category = -1;
       }
@@ -1285,7 +1321,7 @@ watch(
   (ca) => {
       if (ca < -1) current.value.annotation = -1;
       if (currentCategoryFromList.value != null) {
-        let max = currentAnnotationLength.value;
+        const max = currentAnnotationLength.value;
         if (ca > max) {
           current.value.annotation = -1;
         }
@@ -1298,7 +1334,7 @@ watch(
     updateKeypointPanel.value = updateKeypointPanel.value + 1;
     if (sk < -1) current.value.keypoint = -1;
     if (currentCategoryFromList.value != null) {
-      let max = currentAnnotationLength.value;
+      const max = currentAnnotationLength.value;
       if (sk > max) {
         current.value.keypoint = -1;
       }
@@ -1321,7 +1357,7 @@ const onAnnotating = (data) => {
       if (data.image_id !== image.value.id) return;
 
       if (data.active) {
-        let found = annotating.value.indexOf(data.username);
+        const found = annotating.value.indexOf(data.username);
         if (found < 0) {
           annotating.value.push(data.username);
         }
