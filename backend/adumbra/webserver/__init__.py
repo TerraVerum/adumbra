@@ -1,3 +1,4 @@
+from adumbra.webserver.watcher import run_watcher
 import eventlet
 
 eventlet.monkey_patch(thread=False)
@@ -33,8 +34,7 @@ def create_app():
 
     # Dunno why observer.start() does not return
     # We disable it and see later if this is fixable
-    # if Config.FILE_WATCHER:
-    #   run_watcher()
+    run_watcher()
 
     flask = Flask(
         __name__,

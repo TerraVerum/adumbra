@@ -12,6 +12,11 @@ services:
       - FLASK_ENV=development
       # https://flask.palletsprojects.com/en/stable/config/#DEBUG
       - FLASK_DEBUG=true
+    volumes:
+      - ${PWD}/backend/adumbra:/workspace/adumbra
+  workers:
+    volumes:
+      - ${PWD}/backend/adumbra:/workspace/adumbra
   frontend:
     build:
       target: develop

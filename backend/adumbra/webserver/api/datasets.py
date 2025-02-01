@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import os
 from threading import Thread
 
@@ -21,11 +22,11 @@ from adumbra.database import (
 from adumbra.database.users import get_dataset_users
 from adumbra.util import api_bridge
 from adumbra.webserver.util import coco_util
-from adumbra.workers.tasks.helpers.utils import export_coco, import_coco, scan
+from adumbra.workers.tasks.helpers.utils import export_coco, import_coco, scan, split_volume
 
 api = Namespace("dataset", description="Dataset related operations")
 
-
+logger = logging.getLogger("gunicorn.error")
 dataset_create = reqparse.RequestParser()
 dataset_create.add_argument("name", required=True)
 dataset_create.add_argument(
@@ -96,6 +97,20 @@ share.add_argument(
     "users", location="json", type=list, default=[], help="List of users"
 )
 
+dataset_volume = reqparse.RequestParser()
+dataset_volume.add_argument(
+    "volume_path",
+    location="files",
+    type=FileStorage,
+    required=True,
+    help="volume path",
+)
+dataset_volume.add_argument(
+    "name",
+    type=str,
+    required=True,
+    help="Name of the dataset",
+)
 
 @api.route("/")
 class Dataset(Resource):
@@ -671,3 +686,43 @@ class DatasetScan(Resource):
             return {"message": "Invalid dataset ID"}, 400
 
         return scan(dataset)
+
+@api.route("/volume")
+class DatasetVolume(Resource):
+    @api.expect(dataset_volume)
+    @login_required
+    def post(self):
+        """Creates a dataset"""
+        args = dataset_volume.parse_args()
+        logger.info(f"Creating dataset with args: {args}")
+        name = args.get("name", None)
+        volume_file = args.get("volume_path", None)
+
+        if not name or not volume_file:
+            return {"message": "name and volume_path are required"}, 400
+
+        try:
+            dataset = DatasetModel(name=name, categories=[])
+            dataset.save()
+        except NotUniqueError:
+            return {
+                "message": "Dataset already exists. Check the undo tab to fully delete the dataset."
+            }, 400
+
+        #return api_bridge.queryset_to_json(dataset)
+
+        directory = dataset.directory
+        path = os.path.join(directory, volume_file.filename)
+
+        if os.path.exists(path):
+            return {"message": "file already exists"}, 400
+
+        try:
+            with open(path, "wb") as f:
+                f.write(volume_file.read())
+        except Exception as e:
+            return {"message": "Failed to save file"}, 500
+        finally:
+            volume_file.close()
+        
+        return split_volume(dataset, path)

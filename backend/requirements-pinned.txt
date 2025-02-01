@@ -236,3 +236,10 @@ xmljson==0.2.1
 
 # The following packages are considered to be unsafe in a requirements file:
 # opencv-python
+zim_anything  # --no-deps
+easydict
+setuptools
+onnx
+onnxruntime  # --if="build_env.is_cpu_like()"
+fastapi[standard]
+python-multipart

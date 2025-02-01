@@ -24,6 +24,7 @@ class ImageModel(ShimmedDynamicDocument):
 
     # -- Database
     id = fields.SequenceField(primary_key=True)
+    drawinsight_id = fields.StringField()
     dataset_id = fields.IntField(required=True)
     category_ids = fields.ListField(default=[])
 

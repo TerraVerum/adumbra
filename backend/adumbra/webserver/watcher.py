@@ -1,5 +1,6 @@
 import re
 
+from adumbra.workers.tasks.helpers.drawinsight_helpers import int_to_uuid4, spectralis_add_image
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -49,6 +50,9 @@ class ImageFolderHandler(FileSystemEventHandler):
             dataset = DatasetModel.objects(name=dataset_name).first()
 
             image = ImageModel.create_from_path(path, dataset.id).save()
+            image.drawinsight_id = str(int_to_uuid4(image.id))
+            image.save()
+            spectralis_add_image(image)
             generate_thumbnail(image)
 
         elif event.event_type == "moved":

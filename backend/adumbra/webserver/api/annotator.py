@@ -1,13 +1,15 @@
 import datetime
+import uuid
 
+from adumbra.workers.tasks.helpers.drawinsight_helpers import convert_polygons_to_compound_path, uuid4_to_int
 from flask import request
 from flask_login import current_user, login_required
 from flask_restx import Namespace, Resource
 
 from adumbra.config import CONFIG
-from adumbra.database import AnnotationModel, CategoryModel, ImageModel, SessionEvent
+from adumbra.database import AnnotationModel, CategoryModel, DatasetModel, ImageModel, SessionEvent, fix_ids
 from adumbra.util.api_bridge import queryset_to_json
-from adumbra.webserver.util import coco_util, thumbnails
+from adumbra.webserver.util import coco_util, profile, thumbnails
 
 api = Namespace("annotator", description="Annotator related operations")
 
@@ -213,3 +215,70 @@ class AnnotatorId(Resource):
             data["categories"].append(category)
 
         return data
+
+@api.route("/drawinsight_draw")
+class DrawinsightAnnotatorData(Resource):
+    @profile
+    def post(self):
+        """
+        Called when saving data from the annotator client
+        """
+        data = request.get_json(force=True)
+        image_id = uuid4_to_int(uuid.UUID(data.get("image_id")))
+        category_name = data.get("category_name")
+        polygons = data.get("polygons")
+        user = data.get("user")
+
+        old_category = CategoryModel.objects(name=category_name)
+        if not old_category:
+            category = CategoryModel(
+                name=category_name,
+                supercategory="",
+                color="#e93bcd",
+                metadata={},
+                creator=user,
+                keypoint_edges=[],
+                keypoint_labels=[],
+                keypoint_colors=[],
+            )
+            category.save()
+        else:
+            category = old_category.first()
+        category_id = fix_ids(category).get("id")
+
+        image_model = ImageModel.objects(id=image_id).first()
+
+        dataset_id = image_model.dataset_id
+        dataset = DatasetModel.objects(id=dataset_id).first()
+        dataset.update(add_to_set__categories=category_id)
+        paperjs_object = convert_polygons_to_compound_path(
+            polygons, image_id, category_id
+        )
+        segmentation, area, bbox = coco_util.paperjs_to_coco(
+            image_model.width, image_model.height, paperjs_object
+        )
+
+        annotation = AnnotationModel(
+            image_id=image_id,
+            category_id=category_id,
+            dataset_id=image_model.dataset_id,
+            metadata={},
+            creator=user,
+            segmentation=segmentation,
+            keypoints=[],
+            isbbox=False,
+            bbox=bbox,
+            paper_object=paperjs_object,
+            area=area,
+        )
+        annotation.save()
+
+        category_ids = list(set(image_model.category_ids + [category_id]))
+
+        num_annotations = image_model.num_annotations + 1
+        image_model.annotated = True
+        image_model.category_ids = category_ids
+        image_model.regenerate_thumbnail = True
+        image_model.num_annotations = num_annotations
+        image_model.save()
+        return {"success": True}

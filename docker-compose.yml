@@ -55,15 +55,21 @@ services:
     depends_on:
       - database
       - workers
+    volumes:
+      - ${PWD}/drawinsight-assets:/workspace/drawinsight-assets
   workers:
     <<: *service-extends
     image: annotator_workers
     build:
       dockerfile: ./Dockerfile.backend
       target: workers
+    environment:
+      - FILE_WATCHER=true
     depends_on:
       - messageq
       - database
+    volumes:
+      - ${PWD}/drawinsight-assets:/workspace/drawinsight-assets
   ia-gpu:
     extends:
       file: ${PWD}/compose-extensions/ia-gpu.yml
@@ -84,3 +90,14 @@ services:
       adumbra_network:
         aliases:
           - ia
+  drawinsight-wrapper:
+    <<: *service-extends
+    build:
+      dockerfile: ./Dockerfile.backend
+      target: drawinsight-wrapper
+    image: drawinsight-wrapper
+    restart: always
+    ports:
+      - "6543:6543"
+    volumes:
+      - ${PWD}/drawinsight-assets:/workspace/drawinsight-assets

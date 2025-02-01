@@ -5,3 +5,5 @@ __pycache__
 node_modules
 models/zim
 models/sam2.1_hiera_base_plus.pt
+drawinsight-assets
+drawinsight

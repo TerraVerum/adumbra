@@ -21,11 +21,16 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 COPY ./backend/requirements-pinned.txt /tmp/requirements-pinned.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-deps -r /tmp/requirements-pinned.txt
+COPY ./drawinsight /tmp/drawinsight
 
 WORKDIR /workspace/
 # Provides `adumbra` as a package. We can also `pip install .` it if desired.
 COPY ./backend/ /workspace/
 
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -e "/tmp/drawinsight[full]"
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install sam2
 # ----------------
 # Populate git cache
 # ----------------
@@ -84,3 +89,10 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY ./models/ /models/
 EXPOSE 6001
 CMD ["fastapi", "run", "adumbra/ia", "--host", "0.0.0.0", "--port", "6001"]
+
+FROM adumbra-python AS drawinsight-wrapper
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+RUN apt-get install freeglut3-dev -y
+RUN pip install scipy
+EXPOSE 6543
+CMD ["python", "adumbra/drawinsight_wrapper/drawinsight_wrapper.py"]

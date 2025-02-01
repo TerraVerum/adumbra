@@ -5,6 +5,7 @@ from adumbra.database import DatasetModel, ImageModel, TaskModel
 from adumbra.workers import celery
 from adumbra.workers.socket import create_socket
 from adumbra.workers.tasks.thumbnails import thumbnail_generate_single_image
+from adumbra.workers.tasks.helpers.drawinsight_helpers import int_to_uuid4, spectralis_add_image
 
 
 @celery.task
@@ -44,7 +45,10 @@ def scan_dataset(task_id, dataset_id):
                     continue
 
                 try:
-                    ImageModel.create_from_path(path, dataset.id).save()
+                    image = ImageModel.create_from_path(path, dataset.id).save()
+                    image.drawinsight_id = str(int_to_uuid4(image.id))
+                    image.save()
+                    spectralis_add_image(image)
                     count += 1
                     task.info(f"New file found: {path}")
                 # TODO: This is a broad exception, should be narrowed down as we see more errors
