@@ -121,7 +121,7 @@ const setPreferences = (preferences) => {
       eraser.value.setPreferences(preferences.eraser || {});
 };
 
-defineExpose({exportUserTools, bbox, polygon, select,eraser, brush, magicwand, setPreferences, sam2});
+defineExpose({exportUserTools, bbox, polygon, select, eraser, brush, magicwand, keypoint, setPreferences, sam2});
 
 
 
