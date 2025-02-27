@@ -13,7 +13,7 @@
             class="fa fa-question-circle help-icon"
             data-bs-toggle="modal"
             data-bs-target="#helpDataset"
-            aria-hidden="true"
+            aria-hidden="true" inert
           />
         </h2>
 
@@ -34,6 +34,14 @@
               data-bs-target="#createDataset"
             >
               Create
+            </button>
+            <button
+              type="button"
+              class="btn btn-dark"
+              data-bs-toggle="modal"
+              data-bs-target="#createDatasetFromVolume"
+            >
+              Create From Volume
             </button>
             <button
               type="button"
@@ -166,6 +174,88 @@
     </div>
 
     <div
+      id="createDatasetFromVolume"
+      class="modal fade"
+      tabindex="-1"
+      role="dialog"
+    >
+      <div
+        class="modal-dialog"
+        role="document"
+      >
+        <div class="modal-content">
+          <div class="modal-header justify-content-between">
+            <h5 class="modal-title">
+              Creating a Dataset from Volume
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div
+                class="form-group"
+                :class="{ 'was-validated': validVolumeDatasetName.length !== 0 }"
+              >
+                <label>Dataset Name</label>
+                <input
+                  v-model="createFromVolume.name"
+                  class="form-control"
+                  placeholder="Dataset name"
+                  required
+                >
+                <div class="invalid-feedback">
+                  {{ validVolumeDatasetName }}
+                </div>
+              </div>
+
+              <div
+                class="form-group"
+                required
+              >
+                <label>Folder Directory</label>
+                <input
+                  class="form-control"
+                  disabled
+                  :value="volumeDirectory"
+                >
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="createDatasetFromVolume"
+            >
+              Create Dataset
+            </button>
+            <input
+              ref="volumeUploadInput"
+              type="file"
+              class="form-control-file"
+              accept=".npy"
+              multiple
+              @change="importVolumes"
+            />
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
       id="helpDataset"
       class="modal fade"
       tabindex="-1"
@@ -223,6 +313,7 @@
 </template>
 
 <script setup>
+import GenericDialog from "@/components/GenericDialog.vue";
 import Datasets from "@/models/datasets";
 import AdminPanel from "@/models/admin";
 import DatasetCard from "@/components/cards/DatasetCard.vue";
@@ -230,7 +321,8 @@ import Pagination from "@/components/Pagination.vue";
 import TagsInput from "@/components/TagsInput.vue";
 
 import useAxiosRequest from "@/composables/axiosRequest";
-import { ref, computed, watch, inject, onMounted, provide } from 'vue';
+import { ref, computed, watch, inject, onMounted, provide, useTemplateRef} from 'vue';
+import { Modal } from "bootstrap";
 
 const {axiosReqestError, axiosReqestSuccess} = useAxiosRequest();
 
@@ -239,6 +331,8 @@ const authStore = useAuthStore();
 import { useProcStore } from "@/store/index";
 const procStore = useProcStore();
 
+const volumeFilesInput = useTemplateRef("volumeUploadInput");
+
 const pages = ref(1);
 const limit = ref(52);
 const page = ref(1);
@@ -246,6 +340,12 @@ const create = ref({
       name: "",
       categories: []
 });
+const createFromVolume = ref({
+      name: "",
+      volumePath: "",
+      file: null
+});
+
 const datasets = ref([]);
 const subdirectories = ref([]);
 const categories = ref([]);
@@ -302,9 +402,56 @@ const createDataset = () => {
         });
 };
 
+const createDatasetFromVolume = () => {
+      if (createFromVolume.value.name.length < 1) {
+        console.log("Dataset name is required");
+        return;
+      }
+      if (createFromVolume.value.volumePath.length < 1){
+        console.log("Volume path is required");
+        return;
+      }
+
+      Datasets.createFromVolume(createFromVolume.value.name, createFromVolume.value.file)
+        .then(() => {
+          createFromVolume.value.name = "";
+          createFromVolume.value.volumePath = "";
+          createFromVolume.value.file = null;
+          updatePage();
+        })
+        .catch((error) => {
+          axiosReqestError(
+            "Creating Dataset From Volume",
+            error.response.data.message
+          );
+        });
+};
+
+const importVolumes = () => {
+  if (!volumeFilesInput.value) {
+    console.error("File input is not available.");
+    return;
+  }
+  const files = Array.from(volumeFilesInput.value.files);
+  const volumeNames = files.map((f) => f.name).join(", ");
+  procStore.addProcess(`Importing ${volumeNames}`);
+
+  for (let volumeFile of files) {
+    createFromVolume.value.volumePath = volumeFile.name;
+    createFromVolume.value.file = volumeFile;
+    break;
+  }
+};
+
+
 const directory = computed(() => {
   let closing = create.value.name.length > 0 ? "/" : "";
   return "/datasets/" + create.value.name + closing;
+});
+
+const volumeDirectory = computed(() => {
+  let closing = createFromVolume.value.name.length > 0 ? "/" : "";
+  return "/datasets/" + createFromVolume.value.name + closing;
 });
 
 const categoryTags = computed(() => {
@@ -317,6 +464,11 @@ const categoryTags = computed(() => {
 
 const validDatasetName = computed(() => {
   if (create.value.name.length === 0) return "Dataset name is required";
+  return "";
+});
+
+const validVolumeDatasetName = computed(() => {
+  if (createFromVolume.value.name.length === 0) return "Dataset name is required";
   return "";
 });
 

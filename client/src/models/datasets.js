@@ -22,6 +22,17 @@ export default {
       categories: categories
     });
   },
+  createFromVolume(name, volumePath) {
+    let form = new FormData();
+    form.append("name", name);
+    form.append("volume_path", volumePath);
+
+    return axios.post(`${baseURL}/volume`, form, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+  },
   generate(id, body) {
     return axios.post(`${baseURL}/${id}/generate`, {
       ...body
