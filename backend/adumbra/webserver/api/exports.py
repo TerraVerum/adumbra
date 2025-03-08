@@ -61,7 +61,9 @@ class DatasetExportsDownload(Resource):
 
         if not current_user.can_download(dataset):
             return {
-                "message": "You do not have permission to download the dataset's annotations"
+                "message": (
+                    "You do not have permission to download the dataset's annotations"
+                )
             }, 403
 
         encoded_dataset_name = dataset.name.encode("utf-8")

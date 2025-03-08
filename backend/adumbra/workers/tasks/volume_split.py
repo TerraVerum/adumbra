@@ -1,13 +1,13 @@
 from pathlib import Path
+
 import cv2
 import numpy as np
-from adumbra.database import DatasetModel, ImageModel, TaskModel
+from xrayrecon.layerseg import layerInfoForWindow # pylint: disable=import-error
 
+from adumbra.database import DatasetModel, ImageModel, TaskModel
 from adumbra.workers import celery
 from adumbra.workers.socket import create_socket
 from adumbra.workers.tasks.thumbnails import thumbnail_generate_single_image
-
-from xrayrecon.layerseg import layerInfoForWindow # pylint: disable=import-error
 
 
 def forceDepthToLastAx(cube: np.ndarray):

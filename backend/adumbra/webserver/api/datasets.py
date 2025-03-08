@@ -140,7 +140,9 @@ class Dataset(Resource):
             dataset.save()
         except NotUniqueError:
             return {
-                "message": "Dataset already exists. Check the undo tab to fully delete the dataset."
+                "message": (
+                    "Dataset already exists. Check the undo tab to fully delete the dataset."
+                )
             }, 400
 
         return api_bridge.queryset_to_json(dataset)
@@ -178,7 +180,9 @@ class DatasetGenerate(Resource):
 
         if not dataset.is_owner(current_user):
             return {
-                "message": "You do not have permission to download the dataset's annotations"
+                "message": (
+                    "You do not have permission to download the dataset's annotations"
+                )
             }, 403
 
         thread = Thread(target=download_images, args=(dataset.directory, args))
@@ -567,7 +571,9 @@ class DatasetExports(Resource):
 
         if not current_user.can_download(dataset):
             return {
-                "message": "You do not have permission to download the dataset's annotations"
+                "message": (
+                    "You do not have permission to download the dataset's annotations"
+                )
             }, 403
 
         db_exports = (
@@ -642,7 +648,9 @@ class DatasetCoco(Resource):
 
         if not current_user.can_download(dataset):
             return {
-                "message": "You do not have permission to download the dataset's annotations"
+                "message": (
+                    "You do not have permission to download the dataset's annotations"
+                )
             }, 403
 
         return coco_util.get_dataset_coco(dataset)
@@ -710,7 +718,9 @@ class DatasetVolume(Resource):
             dataset.save()
         except NotUniqueError:
             return {
-                "message": "Dataset already exists. Check the undo tab to fully delete the dataset."
+                "message": (
+                    "Dataset already exists. Check the undo tab to fully delete the dataset."
+                )
             }, 400
 
         # return api_bridge.queryset_to_json(dataset)
