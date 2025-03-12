@@ -21,10 +21,14 @@ from adumbra.database import (
 from adumbra.database.users import get_dataset_users
 from adumbra.util import api_bridge
 from adumbra.webserver.util import coco_util
-from adumbra.workers.tasks.helpers.utils import export_coco, import_coco, scan
+from adumbra.workers.tasks.helpers.utils import (
+    export_coco,
+    import_coco,
+    scan,
+    split_volume,
+)
 
 api = Namespace("dataset", description="Dataset related operations")
-
 
 dataset_create = reqparse.RequestParser()
 dataset_create.add_argument("name", required=True)
@@ -96,6 +100,21 @@ share.add_argument(
     "users", location="json", type=list, default=[], help="List of users"
 )
 
+dataset_volume = reqparse.RequestParser()
+dataset_volume.add_argument(
+    "volume_path",
+    location="files",
+    type=FileStorage,
+    required=True,
+    help="volume path",
+)
+dataset_volume.add_argument(
+    "name",
+    type=str,
+    required=True,
+    help="Name of the dataset",
+)
+
 
 @api.route("/")
 class Dataset(Resource):
@@ -121,7 +140,9 @@ class Dataset(Resource):
             dataset.save()
         except NotUniqueError:
             return {
-                "message": "Dataset already exists. Check the undo tab to fully delete the dataset."
+                "message": (
+                    "Dataset already exists. Check the undo tab to fully delete the dataset."
+                )
             }, 400
 
         return api_bridge.queryset_to_json(dataset)
@@ -159,7 +180,9 @@ class DatasetGenerate(Resource):
 
         if not dataset.is_owner(current_user):
             return {
-                "message": "You do not have permission to download the dataset's annotations"
+                "message": (
+                    "You do not have permission to download the dataset's annotations"
+                )
             }, 403
 
         thread = Thread(target=download_images, args=(dataset.directory, args))
@@ -548,7 +571,9 @@ class DatasetExports(Resource):
 
         if not current_user.can_download(dataset):
             return {
-                "message": "You do not have permission to download the dataset's annotations"
+                "message": (
+                    "You do not have permission to download the dataset's annotations"
+                )
             }, 403
 
         db_exports = (
@@ -623,7 +648,9 @@ class DatasetCoco(Resource):
 
         if not current_user.can_download(dataset):
             return {
-                "message": "You do not have permission to download the dataset's annotations"
+                "message": (
+                    "You do not have permission to download the dataset's annotations"
+                )
             }, 403
 
         return coco_util.get_dataset_coco(dataset)
@@ -671,3 +698,45 @@ class DatasetScan(Resource):
             return {"message": "Invalid dataset ID"}, 400
 
         return scan(dataset)
+
+
+@api.route("/volume")
+class DatasetVolume(Resource):
+    @api.expect(dataset_volume)
+    @login_required
+    def post(self):
+        """Creates a dataset"""
+        args = dataset_volume.parse_args()
+        name = args.get("name", None)
+        volume_file = args.get("volume_path", None)
+
+        if not name or not volume_file:
+            return {"message": "name and volume_path are required"}, 400
+
+        try:
+            dataset = DatasetModel(name=name, categories=[])
+            dataset.save()
+        except NotUniqueError:
+            return {
+                "message": (
+                    "Dataset already exists. Check the undo tab to fully delete the dataset."
+                )
+            }, 400
+
+        # return api_bridge.queryset_to_json(dataset)
+
+        directory = dataset.directory
+        path = os.path.join(directory, volume_file.filename)
+
+        if os.path.exists(path):
+            return {"message": "file already exists"}, 400
+
+        try:
+            with open(path, "wb") as f:
+                f.write(volume_file.read())
+        except OSError:
+            return {"message": "Failed to save file"}, 500
+        finally:
+            volume_file.close()
+
+        return split_volume(dataset, path)

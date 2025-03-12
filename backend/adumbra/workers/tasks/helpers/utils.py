@@ -1,6 +1,7 @@
 from adumbra.database.tasks import TaskModel
 from adumbra.workers.tasks.data import export_annotations, import_annotations
 from adumbra.workers.tasks.scan import scan_dataset
+from adumbra.workers.tasks.volume_split import split_volume_into_layers
 
 
 def scan(dataset):
@@ -12,6 +13,19 @@ def scan(dataset):
     task.save()
 
     cel_task = scan_dataset.delay(task.id, dataset.id)
+
+    return {"celery_id": cel_task.id, "id": task.id, "name": task.name}
+
+
+def split_volume(dataset, volume_path):
+    task = TaskModel(
+        name=f"Splitting {volume_path} into images for {dataset.name}",
+        dataset_id=dataset.id,
+        group="Volume Split",
+    )
+    task.save()
+
+    cel_task = split_volume_into_layers.delay(task.id, dataset.id, volume_path)
 
     return {"celery_id": cel_task.id, "id": task.id, "name": task.name}
 

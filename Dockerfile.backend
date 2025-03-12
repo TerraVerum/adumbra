@@ -1,6 +1,6 @@
 ARG DEVICE=cpu
 
-FROM continuumio/miniconda3:latest AS build_base
+FROM continuumio/miniconda3:24.11.1-0 AS build_base
 # Allow commercial use of the container
 ENV CONDA_CHANNELS="conda-forge"
 
@@ -46,6 +46,16 @@ RUN python -c 'from adumbra.config import CONFIG; print(f"adumbra version: {CONF
 # Celery worker container
 # ----------------
 FROM adumbra-python AS workers
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    freeglut3-dev \
+    libfontconfig \
+    libxkbcommon-x11-0 \
+    libdbus-1-dev \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
+COPY ./xrayrecon/ /tmp/xrayrecon/
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install /tmp/xrayrecon
 EXPOSE 5555
 CMD ["celery", "-A", "adumbra.workers", "worker", "-l", "info"]
 
@@ -53,6 +63,20 @@ CMD ["celery", "-A", "adumbra.workers", "worker", "-l", "info"]
 # Webserver container
 # ----------------
 FROM adumbra-python AS webserver
+# We have to install the same dependencies as the workers since
+# we import the split_volume function which calls the worker function.
+# Since this calls the worker function (hence the worker container
+# dependencies).
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    freeglut3-dev \
+    libfontconfig \
+    libxkbcommon-x11-0 \
+    libdbus-1-dev \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
+COPY ./xrayrecon/ /tmp/xrayrecon/
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install /tmp/xrayrecon
 CMD ["gunicorn", "-c", "adumbra/gunicorn_config.py", "adumbra.webserver:app", "--no-sendfile", "--timeout", "180"]
 
 # ----------------

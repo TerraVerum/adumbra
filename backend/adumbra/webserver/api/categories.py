@@ -66,7 +66,9 @@ class CategoryRoot(Resource):
             category.save()
         except NotUniqueError:
             return {
-                "message": "Category already exists. Check the undo tab to fully delete the category."
+                "message": (
+                    "Category already exists. Check the undo tab to fully delete the category."
+                )
             }, 400
 
         return queryset_to_json(category)
