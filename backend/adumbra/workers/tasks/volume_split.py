@@ -2,7 +2,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from xrayrecon.layerseg import layerInfoForWindow # pylint: disable=import-error
+from xrayrecon.layerseg import layerInfoForWindow  # pylint: disable=import-error
 
 from adumbra.database import DatasetModel, ImageModel, TaskModel
 from adumbra.workers import celery
