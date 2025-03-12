@@ -6,7 +6,6 @@
     >
       <ToolsPanel
         ref="toolspanel"
-        :active-tool="activeTool"
         :image="image"
         :categories="categories"
         :mode="mode"
@@ -1334,7 +1333,6 @@ onBeforeRouteLeave((to, from, next) => {
     current.value.annotation = -1;
 
     nextTick(() => {
-      // this.$socket.emit("annotating", {
       socket.io.emit("annotating", {
         image_id: image.value.id,
         active: false
