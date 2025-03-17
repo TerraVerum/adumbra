@@ -564,6 +564,7 @@ const initCanvas = () => {
   loadImageAndSetupText(process);
 };
 
+
 // Function to add a process to the store
 const addProcessToStore = (process) => {
   procStore.addProcess(process);
