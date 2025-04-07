@@ -288,6 +288,15 @@
           </div>
           <div v-else>Export COCO</div>
         </button>
+
+        <button
+          type="button"
+          class="btn btn-dark btn-block"
+          @click="segmentModal"
+        >
+          <div>Segment</div>
+        </button>
+
       </div>
       <hr />
       <h6 class="sidebar-title text-center">Subdirectories</h6>
@@ -426,6 +435,24 @@
         </div>
       </form>
     </GenericDialog>
+
+    <GenericDialog
+      id="segmentDataset"
+      :title="'Segment ' + dataset.name"
+      action="Segment"
+      @click-action="segment"
+    >
+      <form>
+        <div class="form-group">
+          <label>Zip file</label>
+          <input
+            type="file"
+            class="form-control-file"
+            ref="segmentingZipInput"
+          />
+        </div>
+      </form>
+    </GenericDialog>
   </div>
 </template>
 
@@ -476,6 +503,7 @@ const props = defineProps({
 // modals
 let cocoImportModal = null;
 let cocoExportModal = null;
+let jobSegmentModal = null;
 let imagesUploadModal = null;
 
 const identifier = ref(props.identifier);
@@ -525,6 +553,7 @@ const exporting = ref({
   with_empty_images: false,
   id: null,
 });
+
 const selected = ref({
   categories: [],
 });
@@ -659,6 +688,11 @@ const exportModal = () => {
   cocoExportModal.show();
 };
 
+const segmentModal = () => {
+  // $("#segmentDataset").modal("show");
+  jobSegmentModal.show();
+};
+
 const exportCOCO = () => {
   // $("#exportDataset").modal("hide");
   //   cocoExportModal.hide();
@@ -736,6 +770,32 @@ const importImages = () => {
     .finally(() => {
       procStore.removeProcess(`Importing ${imageNames}`);
       updatePage();
+    });
+};
+
+const segmentingZipInput = useTemplateRef<HTMLInputElement>("segmentingZipInput");
+
+const segment = () => {
+  let process = "Segmenting Dataset";
+  const files = segmentingZipInput.value?.files;
+
+  if (!files || files.length === 0) {
+    axiosReqestError("Segmenting Dataset", "Please select a zip file");
+    return;
+  }
+  console.log("VASANTH: files, files[0]", files, files[0]);
+
+  procStore.addProcess(process);
+  Dataset.segment(dataset.value.id, files[0])
+    .then((response) => {
+      axiosReqestSuccess("Segmenting Dataset", "Segmentation task created successfully");
+    })
+    .catch((error) => {
+      axiosReqestError("Segmenting Dataset", error.response.data.message);
+    })
+    .finally(() => {
+      procStore.removeProcess(process);
+      jobSegmentModal.hide(); // Close the modal after submission
     });
 };
 
@@ -925,6 +985,9 @@ onMounted(() => {
 
   const exportTag = document.getElementById("exportDataset");
   cocoExportModal = new Modal(exportTag, {});
+
+  const segmentTag = document.getElementById("segmentDataset");
+  jobSegmentModal = new Modal(segmentTag, {});
 
   // app.__vue_app__._instance.ctx.sockets.subscribe('taskProgress', onTaskProgress);
   // app.__vue_app__._instance.ctx.sockets.subscribe('annotating', onAnnotating);

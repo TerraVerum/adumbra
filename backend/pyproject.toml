@@ -35,6 +35,7 @@ dependencies = [
     "shapely",
     "watchdog",
     "werkzeug",
+    "docker",
 ]
 
 [project.optional-dependencies]

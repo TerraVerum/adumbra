@@ -25,6 +25,7 @@ from adumbra.workers.tasks.helpers.utils import (
     export_coco,
     import_coco,
     scan,
+    segment_job,
     split_volume,
 )
 
@@ -113,6 +114,21 @@ dataset_volume.add_argument(
     type=str,
     required=True,
     help="Name of the dataset",
+)
+
+dataset_segmentation = reqparse.RequestParser()
+dataset_segmentation.add_argument(
+    "zip_path",
+    location="files",
+    type=FileStorage,
+    required=True,
+    help="Path to the zip file",
+)
+dataset_segmentation.add_argument(
+    "dataset_id",
+    type=int,
+    required=True,
+    help="Dataset ID",
 )
 
 
@@ -740,3 +756,28 @@ class DatasetVolume(Resource):
             volume_file.close()
 
         return split_volume(dataset, path)
+
+
+@api.route("/segmentation")
+class DatasetSegmentation(Resource):
+    @api.expect(dataset_segmentation)
+    @login_required
+    def post(self):
+        """Creates a dataset"""
+        args = dataset_segmentation.parse_args()
+        zip_path = args.get("zip_path", None)
+        dataset_id = args.get("dataset_id", None)
+
+        if not zip_path:
+            return {"message": "zip_path is required"}, 400
+        if not dataset_id:
+            return {"message": "dataset_id is required"}, 400
+
+        dataset = DatasetModel.objects(id=dataset_id).first()
+        if not dataset:
+            return {"message": "Invalid dataset ID"}, 400
+
+        path = os.path.join(dataset.directory, zip_path.filename)
+        zip_path.save(path)
+
+        return segment_job(dataset.id, path)

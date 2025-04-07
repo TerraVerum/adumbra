@@ -2,6 +2,9 @@ networks:
   adumbra_network:
     external: false
 
+  adumbra_jobs_network:
+    external: false
+
 volumes:
   datasets:
     external: false

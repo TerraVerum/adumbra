@@ -33,6 +33,16 @@ export default {
       }
     });
   },
+  segment(id, zipPath) {
+    let form = new FormData();
+    form.append("dataset_id", id);
+    form.append("zip_path", zipPath);
+    return axios.post(`${baseURL}/segmentation`, form, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+  },
   generate(id, body) {
     return axios.post(`${baseURL}/${id}/generate`, {
       ...body

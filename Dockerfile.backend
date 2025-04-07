@@ -59,6 +59,48 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 EXPOSE 5555
 CMD ["celery", "-A", "adumbra.workers", "worker", "-l", "info"]
 
+# -------------------------------------------------
+# Dynamic jobs container (Docker‑in‑Docker + FastAPI)
+# -------------------------------------------------
+FROM adumbra-python AS jobs
+
+# ---- system packages ---------------------------------------------------------
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        ca-certificates curl gnupg fuse-overlayfs fuse3 iptables \
+        vim dos2unix \
+    && install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg \
+         | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+        https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
+        > /etc/apt/sources.list.d/docker.list \
+    && apt-get update && apt-get install --no-install-recommends -y \
+        docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# ---- python deps -------------------------------------------------------------
+RUN pip install --no-cache-dir "fastapi[standard]" docker uvicorn[standard]
+
+# ---- Docker‑daemon config ----------------------------------------------------
+# Disable TLS inside DinD for local use
+ENV DOCKER_TLS_CERTDIR=""
+
+WORKDIR /app
+COPY . .
+
+EXPOSE 6543
+
+# ---- start inner dockerd then FastAPI ---------------------------------------
+CMD sh -c '\
+    dockerd --storage-driver=vfs &          \
+    while ! docker info >/dev/null 2>&1; do            \
+        echo "⏳ waiting for inner Docker daemon…";     \
+        sleep 1;                                       \
+    done;                                              \
+    echo "✅ Docker daemon is up";                      \
+    exec fastapi run /app/backend/adumbra/jobs --host 0.0.0.0 --port 6543 \
+'
+
 # ----------------
 # Webserver container
 # ----------------
