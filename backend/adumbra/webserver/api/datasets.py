@@ -121,8 +121,14 @@ dataset_segmentation.add_argument(
     "zip_path",
     location="files",
     type=FileStorage,
-    required=True,
+    required=False,
     help="Path to the zip file",
+)
+dataset_segmentation.add_argument(
+    "job_name",
+    type=str,
+    required=False,
+    help="Job name",
 )
 dataset_segmentation.add_argument(
     "dataset_id",
@@ -766,10 +772,13 @@ class DatasetSegmentation(Resource):
         """Creates a dataset"""
         args = dataset_segmentation.parse_args()
         zip_path = args.get("zip_path", None)
+        job_name = args.get("job_name", None)
+
+        if job_name is None and zip_path is None:
+            return {"message": "job_name or zip_path is required"}, 400
+
         dataset_id = args.get("dataset_id", None)
 
-        if not zip_path:
-            return {"message": "zip_path is required"}, 400
         if not dataset_id:
             return {"message": "dataset_id is required"}, 400
 
@@ -777,7 +786,9 @@ class DatasetSegmentation(Resource):
         if not dataset:
             return {"message": "Invalid dataset ID"}, 400
 
-        path = os.path.join(dataset.directory, zip_path.filename)
-        zip_path.save(path)
+        if zip_path:
+            path = os.path.join(dataset.directory, zip_path.filename)
+            zip_path.save(path)
+            return segment_job(dataset.id, path, zip_path.filename)
 
-        return segment_job(dataset.id, path)
+        return segment_job(dataset.id, None, job_name)

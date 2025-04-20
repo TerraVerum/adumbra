@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   const allowedHosts = (env.VITE_ALLOWED_HOSTS || "")
     .split(",")
     .filter(Boolean);
-  allowedHosts.push("localhost", "webserver");
+  allowedHosts.push("localhost", "webserver", "frontend", "jobs");
 
   return {
     plugins: [vue()],
@@ -24,6 +24,11 @@ export default defineConfig(({ mode }) => {
       allowedHosts: allowedHosts,
 
       proxy: {
+        "/api/jobs": {
+          target: "http://jobs:6543",
+          changeOrigin: true,
+          secure: false,
+        },
         "/api/assistants": {
           target: "http://ia:6001/",
           changeOrigin: true,

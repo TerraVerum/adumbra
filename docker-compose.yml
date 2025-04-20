@@ -38,11 +38,15 @@ services:
       dockerfile: ./Dockerfile.frontend
       target: production  # Default since production is the last stage
     ports:
-      - "8080"
+      - "8080:8080"
     environment:
       - VITE_ALLOWED_HOSTS=${VITE_ALLOWED_HOSTS}
     depends_on:
       - webserver
+    networks:
+      adumbra_jobs_network:
+        aliases:
+          - frontend
   webserver:
     <<: *service-extends
     build:

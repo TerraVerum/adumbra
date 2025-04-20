@@ -8,6 +8,15 @@ import docker.errors
 import requests
 from pydantic import BaseModel
 
+# Set up logging configuration
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/tmp/adumbra_job_manager.log'),
+        logging.StreamHandler()  # This will keep console output as well
+    ]
+)
 
 class JobInfo(BaseModel):
     ObjectType: Literal["JobInfo"] = "JobInfo"
@@ -31,25 +40,43 @@ class DockerJobManager:
         a Dockerfile + a Python HTTP server on port 7654) and run a container.
         """
         build_path = Path(job_info.SavePath)
-        image_tag = f"{job_info.Name.lower()}_image"
+        image_tag = job_info.Name.lower()
         logging.debug(
             f"Building Docker image for job {job_info.Name} from {build_path}"
         )
         try:
-            image, build_logs = self.client.images.build(
-                path=str(build_path), tag=image_tag, rm=True
-            )
-            logging.debug(f"Build logs: {build_logs}")
+            # Try to get existing image first
+            existing_image = self.client.images.list(name=image_tag)
+            if existing_image:
+                image = existing_image[0]
+                logging.debug(f"Found existing image {image_tag}")
+            else:
+                # Image doesn't exist, build it
+                image, build_logs = self.client.images.build(
+                    path=str(build_path), tag=image_tag, rm=True
+                )
+                logging.debug(f"Build logs: {build_logs}")
         except (docker.errors.APIError, TypeError) as e:
-            logging.error(f"Failed to build container {job_info.Name}: {e}")
+            logging.error(f"Failed to build/get container {job_info.Name}: {e}")
             traceback.print_exc()
             return
         try:
-            container = self.client.containers.create(
-                image,
-                detach=True,
-                ports={"7654/tcp": None},  # Map container 7654 -> host random
+            # Check for existing container first
+            existing_containers = self.client.containers.list(
+                all=True,  # Include stopped containers
+                filters={"ancestor": image.id}
             )
+            if existing_containers:
+                container = existing_containers[0]
+                logging.debug(f"Found existing container for image {image_tag}")
+            else:
+                # Create new container if none exists
+                container = self.client.containers.create(
+                    image,
+                    detach=True,
+                    ports={"7654/tcp": None},  # Map container 7654 -> host random
+                )
+                logging.debug(f"Created new container for image {image_tag}")
         except (docker.errors.ImageNotFound, docker.errors.APIError) as e:
             logging.error(f"Failed to create container {job_info.Name}: {e}")
             traceback.print_exc()
@@ -166,3 +193,21 @@ class DockerJobManager:
 
     def get_job_info_by_name(self, job_info_name: str) -> JobInfo | None:
         return self.job_name_to_job_info.get(job_info_name)
+
+    def get_all_jobs(self) -> list[str]:
+        """
+        Get all jobs by retrieving Docker image names on this machine.
+        Returns the base image names without the ':latest' tag.
+        """
+        try:
+            images = self.client.images.list()
+            job_images = []
+            for image in images:
+                # Images can have multiple tags
+                for tag in image.tags:
+                    job_images.append(tag)
+            return job_images
+        except docker.errors.APIError as e:
+            logging.error(f"Failed to list Docker images: {e}")
+            traceback.print_exc()
+            return []  # Return empty list instead of None on error

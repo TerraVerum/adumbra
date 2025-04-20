@@ -444,12 +444,31 @@
     >
       <form>
         <div class="form-group">
-          <label>Zip file</label>
-          <input
-            type="file"
-            class="form-control-file"
-            ref="segmentingZipInput"
-          />
+          <label>Upload Zip file</label>
+          <div class="mb-3">
+            <input
+              type="file"
+              class="form-control-file"
+              ref="segmentingZipInput"
+              accept=".zip"
+              @change="selectedJobPath = null"
+            />
+          </div>
+          <div class="mt-4">
+            <label>Or select from available jobs:</label>
+            <div class="list-group mt-2">
+              <button
+                v-for="job in availableJobs"
+                :key="job"
+                type="button"
+                class="list-group-item list-group-item-action"
+                :class="{ active: selectedJobPath === job }"
+                @click.prevent="selectedJobPath = job; if (segmentingZipInput.value) segmentingZipInput.value.value = ''"
+              >
+                {{ job }}
+              </button>
+            </div>
+          </div>
         </div>
       </form>
     </GenericDialog>
@@ -688,8 +707,24 @@ const exportModal = () => {
   cocoExportModal.show();
 };
 
+const availableJobs = ref([]);
+const selectedJobPath = ref(null);
+
 const segmentModal = () => {
-  // $("#segmentDataset").modal("show");
+  // Reset selections
+  selectedJobPath.value = null;
+  if (segmentingZipInput.value) {
+    segmentingZipInput.value.value = '';
+  }
+  
+  // Fetch available jobs
+  Dataset.getAvailableJobs()
+    .then((response) => {
+      availableJobs.value = response.data.jobs;
+    })
+    .catch((error) => {
+      console.error("Failed to load available jobs:", error);
+    });
   jobSegmentModal.show();
 };
 
@@ -777,17 +812,34 @@ const segmentingZipInput = useTemplateRef<HTMLInputElement>("segmentingZipInput"
 
 const segment = () => {
   let process = "Segmenting Dataset";
-  const files = segmentingZipInput.value?.files;
+  procStore.addProcess(process);
 
-  if (!files || files.length === 0) {
-    axiosReqestError("Segmenting Dataset", "Please select a zip file");
+  // If a job path is selected, use that
+  if (selectedJobPath.value) {
+    Dataset.segment(dataset.value.id, selectedJobPath.value, selectedJobPath.value)
+      .then(() => {
+        axiosReqestSuccess("Segmenting Dataset", "Segmentation task created successfully");
+      })
+      .catch((error) => {
+        axiosReqestError("Segmenting Dataset", error.response.data.message);
+      })
+      .finally(() => {
+        procStore.removeProcess(process);
+        jobSegmentModal.hide();
+      });
     return;
   }
-  console.log("VASANTH: files, files[0]", files, files[0]);
 
-  procStore.addProcess(process);
-  Dataset.segment(dataset.value.id, files[0])
-    .then((response) => {
+  // Otherwise use uploaded file
+  const files = segmentingZipInput.value?.files;
+  if (!files || files.length === 0) {
+    procStore.removeProcess(process);
+    axiosReqestError("Segmenting Dataset", "Please select a zip file or choose from available jobs");
+    return;
+  }
+
+  Dataset.segment(dataset.value.id, files[0], null)
+    .then(() => {
       axiosReqestSuccess("Segmenting Dataset", "Segmentation task created successfully");
     })
     .catch((error) => {
@@ -795,7 +847,7 @@ const segment = () => {
     })
     .finally(() => {
       procStore.removeProcess(process);
-      jobSegmentModal.hide(); // Close the modal after submission
+      jobSegmentModal.hide();
     });
 };
 

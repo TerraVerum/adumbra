@@ -16,7 +16,7 @@ job_manager: DockerJobManager = DockerJobManager()
 class CreateJobInfoRequest(BaseModel):
     model_config = ConfigDict(use_attribute_docstrings=True)
 
-    zip_file: UploadFile
+    zip_file: UploadFile | None = None
     name: str
     input_schema: str
 
@@ -53,13 +53,14 @@ async def create_and_spin_up_job_info(request: AsForm[CreateJobInfoRequest]):
     save_path = Path("/tmp/job_infos") / request.name
     save_path.mkdir(parents=True, exist_ok=True)
     job_zip_file = request.zip_file
-    if zipfile.is_zipfile(job_zip_file.file):
-        with zipfile.ZipFile(job_zip_file.file, "r") as zip_ref:
-            zip_ref.extractall(save_path)
-    else:
-        assert job_zip_file.filename is not None
-        with open(save_path / job_zip_file.filename, "wb") as buffer:
-            buffer.write(job_zip_file.file.read())
+    if job_zip_file is not None:
+        if zipfile.is_zipfile(job_zip_file.file):
+            with zipfile.ZipFile(job_zip_file.file, "r") as zip_ref:
+                zip_ref.extractall(save_path)
+        else:
+            assert job_zip_file.filename is not None
+            with open(save_path / job_zip_file.filename, "wb") as buffer:
+                buffer.write(job_zip_file.file.read())
     input_schema = json.loads(request.input_schema)
     job_info = JobInfo(
         Name=request.name,
@@ -120,6 +121,18 @@ async def get_job_status(job_info_name: str):
         raise HTTPException(status_code=404, detail="Job output not found")
 
     return {"job_info_name": job_info_name, "status": job_status}
+
+@router.get("/jobs")
+async def get_all_jobs():
+    """
+    Get all jobs by retrieving Docker image names on this machine.
+    """
+    jobs = job_manager.get_all_jobs()
+
+    if jobs is None:
+        raise HTTPException(status_code=500, detail="Failed to get all jobs")
+
+    return {"jobs": jobs}
 
 
 # TODO: Allow for this port to be dynamically defined

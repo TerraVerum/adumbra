@@ -31,14 +31,14 @@ def split_volume(dataset, volume_path):
     return {"celery_id": cel_task.id, "id": task.id, "name": task.name}
 
 
-def segment_job(dataset_id, zip_path):
+def segment_job(dataset_id, zip_path, job_name):
     task = TaskModel(
         name=f"Segmenting images for {dataset_id}",
         group="Image Segmentation",
     )
     task.save()
 
-    cel_task = segment_task.delay(task.id, dataset_id, zip_path)
+    cel_task = segment_task.delay(task.id, dataset_id, zip_path, job_name)
 
     return {"celery_id": cel_task.id, "id": task.id, "name": task.name}
 

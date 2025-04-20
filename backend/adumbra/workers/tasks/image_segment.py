@@ -14,7 +14,7 @@ jobs_api_port = os.getenv("JOBS_API_PORT", 6543)
 
 
 @celery.task
-def segment_task(task_id, dataset_id, job_zip_path):
+def segment_task(task_id, dataset_id, job_zip_path, job_name):
     task = TaskModel.objects.get(id=task_id)
     images = ImageModel.objects(dataset_id=dataset_id)
     image_blobs = []
@@ -26,23 +26,29 @@ def segment_task(task_id, dataset_id, job_zip_path):
     task.update(status="PROGRESS")
     socket = create_socket()
 
-    job_name = f"segment_dataset_{task.id}"
-    with open(job_zip_path, "rb") as f:
-        files = {
-            "zip_file": ("file.zip", f, "application/zip"),
-        }
-        data = {
-            "name": job_name,
-            "input_schema": """{"images":[{"blob":"", "id":""}]}""",
-        }
+    data = {
+        "name": job_name,
+        "input_schema": """{"images":[{"blob":"", "id":""}]}""",
+    }
+
+    files = {}
+    if job_zip_path is not None:
+        with open(job_zip_path, "rb") as f:
+            files["zip_file"] = ("file.zip", f, "application/zip")
+            response = requests.post(
+                f"http://jobs:{jobs_api_port}/api/job_infos",
+                files=files,
+                data=data,
+                timeout=120,
+            )
+    else:
         response = requests.post(
             f"http://jobs:{jobs_api_port}/api/job_infos",
-            files=files,
             data=data,
             timeout=120,
         )
-        if response.status_code != 200:
-            raise RuntimeError(f"Failed to create job info: {response.text}")
+    if response.status_code != 200:
+        raise RuntimeError(f"Failed to create job info: {response.text}")
     time.sleep(10)
     data = {
         "job_info_name": job_name,
