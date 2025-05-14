@@ -25,6 +25,7 @@ from adumbra.workers.tasks.helpers.utils import (
     export_coco,
     import_coco,
     scan,
+    segment_job,
     split_volume,
 )
 
@@ -113,6 +114,27 @@ dataset_volume.add_argument(
     type=str,
     required=True,
     help="Name of the dataset",
+)
+
+dataset_segmentation = reqparse.RequestParser()
+dataset_segmentation.add_argument(
+    "zip_path",
+    location="files",
+    type=FileStorage,
+    required=False,
+    help="Path to the zip file",
+)
+dataset_segmentation.add_argument(
+    "job_name",
+    type=str,
+    required=False,
+    help="Job name",
+)
+dataset_segmentation.add_argument(
+    "dataset_id",
+    type=int,
+    required=True,
+    help="Dataset ID",
 )
 
 
@@ -740,3 +762,33 @@ class DatasetVolume(Resource):
             volume_file.close()
 
         return split_volume(dataset, path)
+
+
+@api.route("/segmentation")
+class DatasetSegmentation(Resource):
+    @api.expect(dataset_segmentation)
+    @login_required
+    def post(self):
+        """Creates a dataset"""
+        args = dataset_segmentation.parse_args()
+        zip_path = args.get("zip_path", None)
+        job_name = args.get("job_name", None)
+
+        if job_name is None and zip_path is None:
+            return {"message": "job_name or zip_path is required"}, 400
+
+        dataset_id = args.get("dataset_id", None)
+
+        if not dataset_id:
+            return {"message": "dataset_id is required"}, 400
+
+        dataset = DatasetModel.objects(id=dataset_id).first()
+        if not dataset:
+            return {"message": "Invalid dataset ID"}, 400
+
+        if zip_path:
+            path = os.path.join(dataset.directory, zip_path.filename)
+            zip_path.save(path)
+            return segment_job(dataset.id, path, zip_path.filename)
+
+        return segment_job(dataset.id, None, job_name)

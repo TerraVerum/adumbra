@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const baseURL = "/api/dataset";
+const jobs_api_url = `/api/jobs`;
 
 export default {
   allData(params) {
@@ -32,6 +33,20 @@ export default {
         "Content-Type": "multipart/form-data"
       }
     });
+  },
+  segment(id, zipPath, jobName) {
+    let form = new FormData();
+    form.append("dataset_id", id);
+    form.append("zip_path", zipPath);
+    form.append("job_name", jobName);
+    return axios.post(`${baseURL}/segmentation`, form, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+  },
+  getAvailableJobs() {
+    return axios.get(`${jobs_api_url}`);
   },
   generate(id, body) {
     return axios.post(`${baseURL}/${id}/generate`, {
