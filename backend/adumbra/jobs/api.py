@@ -122,6 +122,7 @@ async def get_job_status(job_info_name: str):
 
     return {"job_info_name": job_info_name, "status": job_status}
 
+
 @router.get("/jobs")
 async def get_all_jobs():
     """

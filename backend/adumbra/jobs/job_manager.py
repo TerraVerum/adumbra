@@ -11,12 +11,13 @@ from pydantic import BaseModel
 # Set up logging configuration
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('/tmp/adumbra_job_manager.log'),
-        logging.StreamHandler()  # This will keep console output as well
-    ]
+        logging.FileHandler("/tmp/adumbra_job_manager.log"),
+        logging.StreamHandler(),  # This will keep console output as well
+    ],
 )
+
 
 class JobInfo(BaseModel):
     ObjectType: Literal["JobInfo"] = "JobInfo"
@@ -63,8 +64,7 @@ class DockerJobManager:
         try:
             # Check for existing container first
             existing_containers = self.client.containers.list(
-                all=True,  # Include stopped containers
-                filters={"ancestor": image.id}
+                all=True, filters={"ancestor": image.id}  # Include stopped containers
             )
             if existing_containers:
                 container = existing_containers[0]
