@@ -7,7 +7,7 @@ name = "xrayrecon"
 description = "Turn 3D X-ray volumes into 2D PCB layers"
 authors = [{ name = "Nathan Jessurun", email = "nathan@terraverum.ai" }]
 readme = "README.md"
-requires-python = ">=3.8,<=3.12.9"
+requires-python = ">=3.8,<=3.12.10"
 license = { text = "MIT" }
 version = "0.1.1"
 classifiers = [
